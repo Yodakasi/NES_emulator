@@ -1,5 +1,8 @@
 #include <iostream>
+#include <cstdint>
+#include "cpu.h"
 
 int main() {
-    std::cout << "hi" << std::endl;
+    Cpu cpu;
+    std::cout << cpu.getCpuState() << std::endl;
 }
