@@ -4,5 +4,11 @@
 
 int main() {
     Cpu cpu;
-    std::cout << cpu.getCpuState() << std::endl;
+    if(cpu.getCpuState()) {
+        cpu.fetchOpcode();
+        cpu.dumpReg();
+        cpu.fetchOpcode();
+        cpu.dumpMem();
+        cpu.dumpReg();
+    }
 }

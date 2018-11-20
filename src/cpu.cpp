@@ -1,65 +1,90 @@
 #include "cpu.h"
-//maybe add aserts instead of returning nullptrt
 
 Cpu::Cpu() {
+    cycles = 0;
     is_cpu_working = true;
     A_reg = 0;
     X_reg = 0;
     Y_reg = 0;
-    P_reg = 0x34; //not sure if hex
+    SP_reg = 0xfd;
+    P_reg = 0x34;
+    ZeroMem();
+    uploadRom();
+    PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);
 }
 
-uint8_t *Cpu::zero_page_addressing(unsigned int offset) {
-    return &memory[offset % 0xff];
+void Cpu::uploadRom() {
+    writeToMem(0xfffd, 0x80);
+    writeToMem(0xfffc, 0);
+    writeToMem(0, 0x10);
+    writeToMem(0x10, 0x50);
+    writeToMem(0x8000, 1);
+    writeToMem(0x8001, 0);
 }
 
-uint8_t *Cpu::indexed_zero_page_addressing(unsigned int offset, char reg) {
-    if(reg == 'x') {
-        return &memory[(offset + X_reg) % 0xff];
-    }
-    else if(reg == 'y') {
-        return &memory[(offset + Y_reg) % 0xff];
-    }
-    return nullptr;
+void Cpu::ZeroMem() {
+    for(auto &i : memory)
+        i = 0;
 }
 
-uint8_t *Cpu::absolete_addressing(unsigned int offset) {
-    if(offset > 0xffff) {
-        return nullptr;
-    }
-    return &memory[offset];
+void Cpu::dumpMem() const {
+    for(auto i : memory)
+        std::cout << (int)i << " ";
+    std::cout << std::endl;
 }
 
-uint8_t *Cpu::indexed_absolete_addressing(unsigned int offset, char reg) {
-    if(offset > 0xffff) {
-        return nullptr;
-    }
-    if(reg == 'x') {
-        return &memory[offset];
-    }
-    else if(reg == 'y') {
-        return &memory[offset];
-    }
-    return nullptr;
+void Cpu::dumpReg() const {
+    std::cout << std::hex;
+    std::cout << "A reg: "  << (int)A_reg << std::endl;
+    std::cout << "X reg: "  << (int)X_reg << std::endl;
+    std::cout << "Y reg: "  << (int)Y_reg << std::endl;
+    std::cout << "PC reg: " << (int)PC_reg << std::endl;
+    std::cout << "SP reg: " << (int)SP_reg << std::endl;
+    std::cout << "P reg: "  << (int)P_reg << std::endl;
 }
 
-uint8_t *Cpu::indirect_addressing(unsigned int offset) {
-    if(offset > 0xffff) {
-        return nullptr;
-    }
-    unsigned int new_offset = memory[offset] + memory[offset + 1] * 0x100;
-    if(new_offset > 0xffff) {
-        return nullptr;
-    }
-    return &memory[new_offset];
+uint8_t Cpu::readFromMem(uint16_t address) const {
+
+    return memory[address];
 }
 
-uint8_t *Cpu::indexed_indirect_addressing(unsigned int offset) {
-    unsigned int new_offset = memory[(offset + X_reg) % 0xffff] + memory[(offset + X_reg + 1) % 0xffff] * 0x100;
-    return &memory[new_offset % 0xffff]; //not sure where it wraparounds
+void Cpu::writeToMem(uint16_t address, uint8_t value) {
+    memory[address] = value;
 }
 
-uint8_t *Cpu::indirect_indexed_addressing(unsigned int offset) {
-    unsigned int new_offset = memory[offset] + memory[offset + 1] * 0x100;
-    return &memory[new_offset + Y_reg];
+
+void Cpu::push(uint8_t value) {
+    memory[SP_reg + 0x100] = value;
+    SP_reg--;
 }
+
+uint8_t Cpu::pop() {
+    uint8_t value = memory[SP_reg + 0x100];
+    SP_reg++;
+    return value;
+}
+
+void Cpu::setFlag(uint8_t value, uint8_t n) {
+    if(value == 1) {
+        P_reg |= (1 << n);
+    }
+    else if(value == 0) {
+        P_reg &= ~(1 << n);
+    }
+}
+
+uint16_t Cpu::zeroPageIndexed(uint16_t arg, uint16_t offset) const {
+    return (arg + offset) % 256;
+}
+
+uint16_t Cpu::absoluteIndexed(uint16_t arg, uint16_t offset) const {
+    return arg + offset;
+}
+
+uint16_t Cpu::indexedIndirect(uint16_t arg) const {
+    return readFromMem((arg + X_reg) % 256) + readFromMem((arg + X_reg + 1) % 256) * 256;
+}
+uint16_t Cpu::indirectIndexed(uint16_t arg) const {
+    return readFromMem(arg) + readFromMem((arg + 1) % 256) * 256 + Y_reg;
+}
+
