@@ -24,30 +24,39 @@ class Cpu {
         uint8_t prg_rom_upper[0x3fff];
     } memory;*/
     uint8_t memory[0xffff];
-    unsigned int cycles;
+    mutable unsigned int cycles;
 
 public:
     Cpu();
-    enum flags {Carry, Zero, Interupt, Decimal, Overflow = 6, Negative};
+    enum flags {Carry, Zero, Interupt, Decimal, Break, Overflow = 6, Negative};
+    enum adressingModes {ZeroPage, ZeroPageIndexed, Absolute, AbsoluteIndexedX, AbsoluteIndexedY, IndexedIndirect, IndirectIndexed, Immediate, Accumulator, Indirect};
     void uploadRom();
     void ZeroMem();
     void dumpMem() const;
     void dumpReg() const;
+    void dumpStack() const;
     bool getCpuState() const {return is_cpu_working;}
     uint8_t readFromMem(uint16_t address) const;
     void writeToMem(uint16_t address, uint8_t value);
     void setFlag(uint8_t value, uint8_t n);
-    uint16_t zeroPageIndexed(uint16_t arg, uint16_t offset) const;
-    uint16_t absoluteIndexed(uint16_t arg, uint16_t offset) const;
-    uint16_t indexedIndirect(uint16_t arg) const;
-    uint16_t indirectIndexed(uint16_t arg) const;
+    bool getFlag(uint8_t n) const;
+    uint16_t zeroPageIndexed(uint8_t arg, uint8_t offset) const;
+    uint16_t absoluteIndexed(uint8_t arg1, uint8_t arg2, uint8_t offset, bool pageCrossing) const;
+    uint16_t indirect(uint16_t arg) const;
+    uint16_t indexedIndirect(uint8_t arg) const;
+    uint16_t indirectIndexed(uint8_t arg) const;
     void push(uint8_t value);
     uint8_t pop();
     void fetchOpcode();
     void BRK();
-    void ORAindexedIndirect();
-    void ORAZeroPage();
-
+    void ORA(int addressingMode);
+    void ASL(int addressingMode);
+    void PHP();
+    void BPL();
+    void CLC();
+    void JSR();
+    void AND(int addressingMode);
+    void BIT(int addressingMode);
 };
 
 #endif

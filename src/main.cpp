@@ -7,8 +7,9 @@ int main() {
     if(cpu.getCpuState()) {
         cpu.fetchOpcode();
         cpu.dumpReg();
-        cpu.fetchOpcode();
+        cpu.dumpStack();
+        //cpu.fetchOpcode();
         cpu.dumpMem();
-        cpu.dumpReg();
+        //cpu.dumpReg();
     }
 }
