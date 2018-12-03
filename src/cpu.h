@@ -57,6 +57,9 @@ public:
     void JSR();
     void AND(int addressingMode);
     void BIT(int addressingMode);
+    void ROL(int addressingMode);
+    void PLP();
+    void BMI();
 };
 
 #endif

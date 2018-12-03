@@ -64,6 +64,30 @@ void Cpu::fetchOpcode() {
         case 0x24:
             BIT(ZeroPage);
             break;
+        case 0x25:
+            AND(ZeroPage);
+            break;
+        case 0x26:
+            ROL(ZeroPage);
+            break;
+        case 0x28:
+            PLP();
+            break;
+        case 0x29:
+            AND(Immediate);
+            break;
+        case 0x2a:
+            ROL(Accumulator);
+            break;
+        case 0x2c:
+            BIT(Absolute);
+            break;
+        case 0x2d:
+            AND(Absolute);
+            break;
+        case 0x2e:
+            ROL(Absolute);
+            break;
         default:
             std::cout << "Instruction undefined" << std::endl;
     }
@@ -143,9 +167,24 @@ void Cpu::ORA(int addressingMode) {
 void Cpu::AND(int addressingMode) {
     uint8_t value;
     switch(addressingMode) {
+        case ZeroPage:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));
+            cycles += 3;
+            PC_reg += 2;
+            break;
+        case Absolute:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
+            cycles += 4;
+            PC_reg += 3;
+            break;
         case IndexedIndirect:
             value = readFromMem(indexedIndirect(readFromMem(PC_reg+1)));
             cycles += 6;
+            PC_reg += 2;
+            break;
+        case Immediate:
+            value = readFromMem(PC_reg+1);
+            cycles += 2;
             PC_reg += 2;
             break;
     }
@@ -223,6 +262,52 @@ void Cpu::ASL(int addressingMode) {
     
 }
 
+void Cpu::ROL(int addressingMode) {
+    uint8_t value;
+    switch(addressingMode) {
+        case ZeroPage:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));
+            break;
+        case Absolute:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
+            break;
+        case Accumulator:
+            value = A_reg;
+            break;
+    }
+    uint8_t result = value << 1;
+    if(getFlag(Carry)) 
+        result |= 1;
+    setFlag((value & 128) >> 7, Carry);
+    if(result > 0x7f)
+        setFlag(1, Negative);
+    else
+        setFlag(0, Negative);
+    if(result == 0)
+        setFlag(1, Zero);
+    else
+        setFlag(0, Zero);
+    switch(addressingMode) {
+        case ZeroPage:
+            writeToMem(zeroPageIndexed(readFromMem(PC_reg+1), 0), result);
+            PC_reg += 2;
+            cycles += 5;
+            break;
+        case Absolute:
+            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false), result);
+            PC_reg += 3;
+            cycles += 6;
+            break;
+        case Accumulator:
+            A_reg = result;
+            PC_reg++;
+            cycles += 2;
+            break;
+    }
+
+    
+}
+
 void Cpu::BIT(int addressingMode) {
     uint8_t value;
     switch(addressingMode) {
@@ -231,6 +316,10 @@ void Cpu::BIT(int addressingMode) {
             cycles += 3;
             PC_reg += 2;
             break;
+        case Absolute:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
+            cycles += 4;
+            PC_reg += 3;
     }
     setFlag((value & 128) >> 7, Negative);
     setFlag((value & 64) >> 6, Overflow);
@@ -248,6 +337,12 @@ void Cpu::PHP() {
     cycles += 3;
 }
 
+void Cpu::PLP() {
+    P_reg = pop();
+    PC_reg++;
+    cycles += 4;
+}
+
 //Branches
 
 void Cpu::BPL() {
@@ -263,6 +358,10 @@ void Cpu::BPL() {
         PC_reg += 2;
     }
     cycles += 2;
+}
+
+void Cpu::BMI() {
+    
 }
 
 
