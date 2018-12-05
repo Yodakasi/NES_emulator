@@ -3,11 +3,11 @@
 Cpu::Cpu() {
     cycles = 0;
     is_cpu_working = true;
-    A_reg = 129;
-    X_reg = 0;
-    Y_reg = 1;
+    A_reg = 128;
+    X_reg = 2;
+    Y_reg = 0;
     SP_reg = 0xfd;
-    P_reg = 255;
+    P_reg = 0;
     ZeroMem();
     uploadRom();
     PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);
@@ -16,14 +16,16 @@ Cpu::Cpu() {
 void Cpu::uploadRom() {
     writeToMem(0xfffd, 0x80);
     writeToMem(0xfffc, 0);
-    writeToMem(0x5000, 192);
-    writeToMem(0x20, 0x00);
-    writeToMem(0x21, 0x40);
+    writeToMem(0x4550, 129);
+    writeToMem(0x52, 128);
+    writeToMem(0x51, 0x45);
     writeToMem(0x2000, 1);
-    writeToMem(0x8000, 0x2e);
-    writeToMem(0x8001, 0x00);
-    writeToMem(0x8002, 0x50);
-
+    writeToMem(0x8000, 0x55);
+    writeToMem(0x8001, 0x50);
+    writeToMem(0x8002, 0x45);
+    push(0x80);
+    push(16);
+    push(255);
 }
 
 void Cpu::ZeroMem() {

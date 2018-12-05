@@ -60,6 +60,13 @@ public:
     void ROL(int addressingMode);
     void PLP();
     void BMI();
+    void SEC();
+    void RTI();
+    void EOR(int addressingMode);
+    void LSR(int addressingMode);
+    void PHA();
+    void JMP(int addressingMode);
+    void BVC();
 };
 
 #endif

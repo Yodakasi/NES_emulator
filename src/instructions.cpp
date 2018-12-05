@@ -88,6 +88,63 @@ void Cpu::fetchOpcode() {
         case 0x2e:
             ROL(Absolute);
             break;
+        case 0x30:
+            BMI();
+            break;
+        case 0x31:
+            AND(IndirectIndexed);
+            break;
+        case 0x35:
+            AND(ZeroPageIndexed);
+            break;
+        case 0x36:
+            ROL(ZeroPageIndexed);
+            break;
+        case 0x38:
+            SEC();
+            break;
+        case 0x39:
+            AND(AbsoluteIndexedY);
+            break;
+        case 0x40:
+            RTI();
+            break;
+        case 0x41:
+            EOR(IndexedIndirect);
+            break;
+        case 0x45:
+            EOR(ZeroPage);
+            break;
+        case 0x46:
+            LSR(ZeroPage);
+            break;
+        case 0x48:
+            PHA();
+            break;
+        case 0x49:
+            EOR(Immediate);
+            break;
+        case 0x4a:
+            LSR(Accumulator);
+            break;
+        case 0x4c:
+            JMP(Absolute);
+            break;
+        case 0x4d:
+            EOR(Absolute);
+            break;
+        case 0x4e:
+            LSR(Absolute);
+            break;
+        case 0x50:
+            BVC();
+            break;
+        case 0x51:
+            EOR(IndirectIndexed);
+            break;
+        case 0x55:
+            EOR(ZeroPageIndexed);
+            break;
         default:
             std::cout << "Instruction undefined" << std::endl;
     }
@@ -172,14 +229,29 @@ void Cpu::AND(int addressingMode) {
             cycles += 3;
             PC_reg += 2;
             break;
+        case ZeroPageIndexed:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg));
+            cycles += 4;
+            PC_reg += 2;
+            break;
         case Absolute:
             value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
+            cycles += 4;
+            PC_reg += 3;
+            break;
+        case AbsoluteIndexedY:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), Y_reg, true));
             cycles += 4;
             PC_reg += 3;
             break;
         case IndexedIndirect:
             value = readFromMem(indexedIndirect(readFromMem(PC_reg+1)));
             cycles += 6;
+            PC_reg += 2;
+            break;
+        case IndirectIndexed:
+            value = readFromMem(indirectIndexed(readFromMem(PC_reg+1)));
+            cycles += 5;
             PC_reg += 2;
             break;
         case Immediate:
@@ -268,6 +340,9 @@ void Cpu::ROL(int addressingMode) {
         case ZeroPage:
             value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));
             break;
+        case ZeroPageIndexed:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg));
+            break;
         case Absolute:
             value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
             break;
@@ -293,6 +368,11 @@ void Cpu::ROL(int addressingMode) {
             PC_reg += 2;
             cycles += 5;
             break;
+        case ZeroPageIndexed:
+            writeToMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg), result);
+            PC_reg += 2;
+            cycles += 6;
+            break;
         case Absolute:
             writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false), result);
             PC_reg += 3;
@@ -308,6 +388,52 @@ void Cpu::ROL(int addressingMode) {
     
 }
 
+void Cpu::EOR(int addressingMode) {
+    uint8_t value;
+    switch(addressingMode) {
+        case ZeroPage:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));
+            cycles += 3;
+            PC_reg += 2;
+            break;
+        case ZeroPageIndexed:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg));
+            cycles += 4;
+            PC_reg += 2;
+            break;
+        case Absolute:
+            value = readFromMem(readFromMem(PC_reg+1) + readFromMem(PC_reg+2)*256);
+            cycles += 4;
+            PC_reg += 3;
+            break;
+        case IndexedIndirect:
+            value = readFromMem(indexedIndirect(readFromMem(PC_reg+1)));
+            cycles += 6;
+            PC_reg += 2;
+            break;
+        case IndirectIndexed:
+            value = readFromMem(indirectIndexed(readFromMem(PC_reg+1)));
+            cycles += 5;
+            PC_reg += 2;
+            break;
+        case Immediate:
+            value = readFromMem(PC_reg+1);
+            cycles += 2;
+            PC_reg += 2;
+            break;
+    }
+    uint8_t result = value ^ A_reg;
+    if(result > 0x7f)
+        setFlag(1, Negative);
+    else
+        setFlag(0, Negative);
+    if(result == 0)
+        setFlag(1, Zero);
+    else
+        setFlag(0, Zero);
+    A_reg = result;
+}
+
 void Cpu::BIT(int addressingMode) {
     uint8_t value;
     switch(addressingMode) {
@@ -320,6 +446,7 @@ void Cpu::BIT(int addressingMode) {
             value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
             cycles += 4;
             PC_reg += 3;
+            break;
     }
     setFlag((value & 128) >> 7, Negative);
     setFlag((value & 64) >> 6, Overflow);
@@ -327,6 +454,44 @@ void Cpu::BIT(int addressingMode) {
         setFlag(0, Zero);
     else
         setFlag(1, Zero);
+}
+
+void Cpu::LSR(int addressingMode) {
+    uint8_t value;
+    switch(addressingMode) {
+        case ZeroPage:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));
+            break;
+        case Absolute:
+            value = readFromMem(readFromMem(PC_reg+1) + readFromMem(PC_reg+2)*256);
+            break;
+        case Accumulator:
+            value = A_reg;
+            break;
+    }
+    setFlag(value & 1, Carry);
+    uint8_t result = value >> 1;
+    if(result)
+        setFlag(0, Zero);
+    else
+        setFlag(1, Zero);
+    switch(addressingMode) {
+        case ZeroPage:
+            writeToMem(zeroPageIndexed(readFromMem(PC_reg+1), 0), result);
+            cycles += 5;
+            PC_reg += 2;
+            break;
+        case Absolute:
+            writeToMem(readFromMem(PC_reg+1) + readFromMem(PC_reg+2)*256, result);
+            cycles += 6;
+            PC_reg += 3;
+            break;
+        case Accumulator:
+            A_reg = result;
+            cycles += 2;
+            PC_reg++;
+            break;
+    }
 }
 
 //Stack
@@ -343,12 +508,19 @@ void Cpu::PLP() {
     cycles += 4;
 }
 
+void Cpu::PHA() {
+    push(A_reg);
+    PC_reg++;
+    cycles += 3;
+}
+
 //Branches
 
 void Cpu::BPL() {
     if(!getFlag(Negative)) {
         uint16_t old_PC = PC_reg;
-        PC_reg += readFromMem(old_PC + 1) + 2;
+        int8_t value = (int8_t)readFromMem(old_PC + 1);
+        PC_reg += value + 2;
         if((PC_reg & 0xff00) != (old_PC & 0xff00))
             cycles += 2;
         else
@@ -361,9 +533,36 @@ void Cpu::BPL() {
 }
 
 void Cpu::BMI() {
-    
+    if(getFlag(Negative)) {
+        uint16_t old_PC = PC_reg;
+        int8_t value = (int8_t)readFromMem(old_PC + 1);
+        PC_reg += value + 2;
+        if((PC_reg & 0xff00) != (old_PC & 0xff00))
+            cycles += 2;
+        else
+            cycles += 1;
+    }
+    else {
+        PC_reg += 2;
+    }
+    cycles += 2;
 }
 
+void Cpu::BVC() {
+    if(!getFlag(Overflow)) {
+        uint16_t old_PC = PC_reg;
+        int8_t value = (int8_t)readFromMem(old_PC + 1);
+        PC_reg += value + 2;
+        if((PC_reg & 0xff00) != (old_PC & 0xff00))
+            cycles += 2;
+        else
+            cycles += 1;
+    }
+    else {
+        PC_reg += 2;
+    }
+    cycles += 2;
+}
 
 //registers
 
@@ -373,12 +572,34 @@ void Cpu::CLC() {
     cycles += 2;
 }
 
+void Cpu::SEC() {
+    setFlag(1, Carry);
+    PC_reg++;
+    cycles += 2;
+}
+
 //jumps
 
+void Cpu::JMP(int addressingMode) {
+    uint16_t value;
+    switch(addressingMode) {
+        case Absolute:
+            value = readFromMem(PC_reg+1) + readFromMem(PC_reg+2) * 256;
+            cycles += 3;
+            break;
+    }
+    PC_reg = value;
+}
+
 void Cpu::JSR() {
-    std::cout << "elo " << (int)((PC_reg + 2) >> 8) << std::endl;
     push((PC_reg + 2) >> 8);
     push((PC_reg + 2) & 0x00ff);
     PC_reg = absoluteIndexed(readFromMem(PC_reg + 1), readFromMem(PC_reg + 2), 0, false);
+    cycles += 6;
+}
+
+void Cpu::RTI() {
+    P_reg = pop();
+    PC_reg = pop() + pop() * 256;
     cycles += 6;
 }
