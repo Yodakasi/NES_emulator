@@ -67,6 +67,9 @@ public:
     void PHA();
     void JMP(int addressingMode);
     void BVC();
+    void CLI();
+    void RTS();
+    void ADC(int addressingMode);
 };
 
 #endif

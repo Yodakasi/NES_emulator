@@ -1,4 +1,4 @@
-SRC = src/main.cpp src/cpu.cpp src/instructions.cpp
+SRC = src/main.cpp src/cpu.cpp src/instructions.cpp src/opcodes/*
 DST = bin/nes_emu
 
 rule:
