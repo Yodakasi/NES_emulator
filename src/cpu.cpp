@@ -3,11 +3,11 @@
 Cpu::Cpu() {
     cycles = 0;
     is_cpu_working = true;
-    A_reg = 45;
-    X_reg = 0;
-    Y_reg = 2;
+    A_reg = 11;
+    X_reg = 2;
+    Y_reg = 0xa;
     SP_reg = 0xfd;
-    P_reg = 0;
+    P_reg = 2;
     ZeroMem();
     uploadRom();
     PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);
@@ -16,15 +16,15 @@ Cpu::Cpu() {
 void Cpu::uploadRom() {
     writeToMem(0xfffd, 0x80);
     writeToMem(0xfffc, 0);
-    writeToMem(0x4600, 25);
-    writeToMem(0x50, 0);
-    writeToMem(0x51, 0x46);
-    writeToMem(0x2000, 1);
-    writeToMem(0x8000, 0x61);
-    writeToMem(0x8001, 0x50);
-    writeToMem(0x8002, 0x45);
+    writeToMem(0x4602, 127);
+    writeToMem(0x4603, 0x80);
+    writeToMem(0x2, 0x0);
+    writeToMem(0x3, 0x46);
+    writeToMem(0x8000, 0x96);
+    writeToMem(0x8001, 0x2);
+    writeToMem(0x8002, 0x46);
     push(0x80);
-    push(16);
+    //push(16);
     
 }
 
@@ -128,7 +128,7 @@ uint16_t Cpu::absoluteIndexed(uint8_t arg1, uint8_t arg2, uint8_t offset, bool p
 }
 
 uint16_t Cpu::indirect(uint16_t arg) const {
-    return readFromMem(arg) + readFromMem((arg + 1) % 256) * 256;
+    return readFromMem(arg) + readFromMem(arg + 1) * 256;
 }
 
 uint16_t Cpu::indexedIndirect(uint8_t arg) const {

@@ -1,10 +1,10 @@
 #include "../cpu.h"
 
-void Cpu::BPL() {
-    if(!getFlag(Negative)) {
+void Cpu::branch(int flag, int value) {
+    if(getFlag(flag) == value) {
         uint16_t old_PC = PC_reg;
-        int8_t value = (int8_t)readFromMem(old_PC + 1);
-        PC_reg += value + 2;
+        int8_t branchValue = (int8_t)readFromMem(old_PC + 1);
+        PC_reg += branchValue + 2;
         if((PC_reg & 0xff00) != (old_PC & 0xff00))
             cycles += 2;
         else
@@ -14,43 +14,10 @@ void Cpu::BPL() {
         PC_reg += 2;
     }
     cycles += 2;
+    
 }
-
-void Cpu::BMI() {
-    if(getFlag(Negative)) {
-        uint16_t old_PC = PC_reg;
-        int8_t value = (int8_t)readFromMem(old_PC + 1);
-        PC_reg += value + 2;
-        if((PC_reg & 0xff00) != (old_PC & 0xff00))
-            cycles += 2;
-        else
-            cycles += 1;
-    }
-    else {
-        PC_reg += 2;
-    }
-    cycles += 2;
-}
-
-void Cpu::BVC() {
-    if(!getFlag(Overflow)) {
-        uint16_t old_PC = PC_reg;
-        int8_t value = (int8_t)readFromMem(old_PC + 1);
-        PC_reg += value + 2;
-        if((PC_reg & 0xff00) != (old_PC & 0xff00))
-            cycles += 2;
-        else
-            cycles += 1;
-    }
-    else {
-        PC_reg += 2;
-    }
-    cycles += 2;
-}
-
 
 //Jumps
-
 
 void Cpu::JMP(int addressingMode) {
     uint16_t value;
@@ -58,6 +25,10 @@ void Cpu::JMP(int addressingMode) {
         case Absolute:
             value = readFromMem(PC_reg+1) + readFromMem(PC_reg+2) * 256;
             cycles += 3;
+            break;
+        case Indirect:
+            value = indirect(readFromMem(PC_reg+1) + readFromMem(PC_reg+2) * 256);
+            cycles += 5;
             break;
     }
     PC_reg = value;

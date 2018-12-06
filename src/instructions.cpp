@@ -32,7 +32,7 @@ void Cpu::fetchOpcode() {
             ASL(Absolute);
             break;
         case 0x10:
-            BPL();
+            branch(Negative, 0);
             break;
         case 0x11:
             ORA(IndirectIndexed);
@@ -89,7 +89,7 @@ void Cpu::fetchOpcode() {
             ROL(Absolute);
             break;
         case 0x30:
-            BMI();
+            branch(Negative, 1);
             break;
         case 0x31:
             AND(IndirectIndexed);
@@ -137,7 +137,7 @@ void Cpu::fetchOpcode() {
             LSR(Absolute);
             break;
         case 0x50:
-            BVC();
+            branch(Overflow, 1);
             break;
         case 0x51:
             EOR(IndirectIndexed);
@@ -165,6 +165,81 @@ void Cpu::fetchOpcode() {
             break;
         case 0x61:
             ADC(IndexedIndirect);
+            break;
+        case 0x65:
+            ADC(ZeroPage);
+            break;
+        case 0x66:
+            ROR(ZeroPage);
+            break;
+        case 0x68:
+            PLA();
+            break;
+        case 0x69:
+            ADC(Immediate);
+            break;
+        case 0x6a:
+            ROR(Accumulator);
+            break;
+        case 0x6c:
+            JMP(Indirect);
+            break;
+        case 0x6d:
+            ADC(Absolute);
+            break;
+        case 0x6e:
+            ROR(Absolute);
+            break;
+        case 0x70:
+            branch(Overflow, 1);
+            break;
+        case 0x71:
+            ADC(IndirectIndexed);
+            break;
+        case 0x75:
+            ADC(ZeroPageIndexed);
+            break;
+        case 0x76:
+            ROR(ZeroPageIndexed);
+            break;
+        case 0x78:
+            SEI();
+            break;
+        case 0x79:
+            ADC(AbsoluteIndexedY);
+            break;
+        case 0x7d:
+            ADC(AbsoluteIndexedX);
+            break;
+        case 0x7e:
+            ROR(AbsoluteIndexedX);
+            break;
+        case 0x81:
+            store(IndexedIndirect, A_reg);
+            break;
+        case 0x84:
+            store(ZeroPage, Y_reg);
+            break;
+        case 0x85:
+            store(ZeroPage, A_reg);
+            break;
+        case 0x86:
+            store(ZeroPage, X_reg);
+            break;
+        case 0x90:
+            branch(Carry, 0);
+            break;
+        case 0x91:
+            store(IndirectIndexed, A_reg);
+            break;
+        case 0x94:
+            store(ZeroPageIndexed, Y_reg, X_reg);
+            break;
+        case 0x95:
+            store(ZeroPageIndexed, A_reg, X_reg);
+            break;
+        case 0x96:
+            store(ZeroPageIndexed, X_reg, Y_reg);
             break;
         default:
             std::cout << "Instruction undefined" << std::endl;

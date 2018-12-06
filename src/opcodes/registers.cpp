@@ -17,3 +17,9 @@ void Cpu::CLI() {
     PC_reg++;
     cycles += 2;
 }
+
+void Cpu::SEI() {
+    setFlag(1, Interupt);
+    PC_reg++;
+    cycles += 2;
+}

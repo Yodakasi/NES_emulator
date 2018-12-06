@@ -226,6 +226,66 @@ void Cpu::ROL(int addressingMode) {
     
 }
 
+void Cpu::ROR(int addressingMode) {
+    uint8_t value;
+    switch(addressingMode) {
+        case ZeroPage:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));
+            break;
+        case ZeroPageIndexed:
+            value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg));
+            break;
+        case Absolute:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
+            break;
+        case AbsoluteIndexedX:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, false));
+            break;
+        case Accumulator:
+            value = A_reg;
+            break;
+    }
+    uint8_t result = value >> 1;
+    if(getFlag(Carry)) 
+        result |= 128;
+    setFlag(value & 1, Carry);
+    if(result > 0x7f)
+        setFlag(1, Negative);
+    else
+        setFlag(0, Negative);
+    if(result == 0)
+        setFlag(1, Zero);
+    else
+        setFlag(0, Zero);
+    switch(addressingMode) {
+        case ZeroPage:
+            writeToMem(zeroPageIndexed(readFromMem(PC_reg+1), 0), result);
+            PC_reg += 2;
+            cycles += 5;
+            break;
+        case ZeroPageIndexed:
+            writeToMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg), result);
+            PC_reg += 2;
+            cycles += 6;
+            break;
+        case Absolute:
+            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false), result);
+            PC_reg += 3;
+            cycles += 6;
+            break;
+        case AbsoluteIndexedX:
+            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, false), result);
+            cycles += 7;
+            PC_reg += 3;
+            break;
+        case Accumulator:
+            A_reg = result;
+            PC_reg++;
+            cycles += 2;
+            break;
+    }    
+}
+
 void Cpu::EOR(int addressingMode) {
     uint8_t value;
     switch(addressingMode) {
