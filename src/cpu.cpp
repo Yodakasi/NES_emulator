@@ -4,8 +4,8 @@ Cpu::Cpu() {
     cycles = 0;
     is_cpu_working = true;
     A_reg = 11;
-    X_reg = 2;
-    Y_reg = 0xa;
+    X_reg = 3;
+    Y_reg = 1;
     SP_reg = 0xfd;
     P_reg = 2;
     ZeroMem();
@@ -18,10 +18,10 @@ void Cpu::uploadRom() {
     writeToMem(0xfffc, 0);
     writeToMem(0x4602, 127);
     writeToMem(0x4603, 0x80);
-    writeToMem(0x2, 0x0);
-    writeToMem(0x3, 0x46);
-    writeToMem(0x8000, 0x96);
-    writeToMem(0x8001, 0x2);
+    writeToMem(0x4, 0xfe);
+    writeToMem(0x5, 0x46);
+    writeToMem(0x8000, 0xaa);
+    writeToMem(0x8001, 0x4);
     writeToMem(0x8002, 0x46);
     push(0x80);
     //push(16);

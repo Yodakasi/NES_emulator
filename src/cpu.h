@@ -14,6 +14,7 @@ class Cpu {
     mutable unsigned int cycles;
     enum flags {Carry, Zero, Interupt, Decimal, Break, Overflow = 6, Negative};
     enum adressingModes {ZeroPage, ZeroPageIndexed, Absolute, AbsoluteIndexedX, AbsoluteIndexedY, IndexedIndirect, IndirectIndexed, Immediate, Accumulator, Indirect};
+    enum registers {A, X, Y, SP};
 
     //memory operations
     uint8_t readFromMem(uint16_t address) const;
@@ -74,7 +75,8 @@ class Cpu {
     
     //storage    
     void store(int addressingMode, uint8_t value, int index = 0);
-    void transfer(uint8_t from, uint8_t to);
+    void transfer(uint8_t from, int to);
+    void load(int addressingMode, int regNum);
 
 public:
     Cpu();

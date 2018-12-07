@@ -241,6 +241,45 @@ void Cpu::fetchOpcode() {
         case 0x96:
             store(ZeroPageIndexed, X_reg, Y_reg);
             break;
+        case 0x98:
+            transfer(Y_reg, A);
+            break;
+        case 0x99:
+            store(AbsoluteIndexedY, A_reg);
+            break;
+        case 0x9a:
+            transfer(X_reg, SP);
+            break;
+        case 0x9d:
+            store(AbsoluteIndexedX, A_reg);
+            break;
+        case 0xa0:
+            load(Immediate, Y);
+            break;
+        case 0xa1:
+            load(IndexedIndirect, A);
+            break;
+        case 0xa2:
+            load(Immediate, X);
+            break;
+        case 0xa4:
+            load(ZeroPage, Y);
+            break;
+        case 0xa5:
+            load(ZeroPage, A);
+            break;
+        case 0xa6:
+            load(ZeroPage, X);
+            break;
+        case 0xa8:
+            transfer(A_reg, Y);
+            break;
+        case 0xa9:
+            load(Immediate, A);
+            break;
+        case 0xaa:
+            transfer(A_reg, X);
+            break;
         default:
             std::cout << "Instruction undefined" << std::endl;
     }
