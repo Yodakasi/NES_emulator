@@ -403,6 +403,39 @@ void Cpu::fetchOpcode() {
         case 0xea:
             NOP();
             break;
+        case 0xec:
+            compare(Absolute, X_reg);
+            break;
+        case 0xed:
+            SBC(Absolute);
+            break;
+        case 0xee:
+            DECINC(Absolute, true);
+            break;
+        case 0xf0:
+            branch(Zero, 1);
+            break;
+        case 0xf1:
+            SBC(IndirectIndexed);
+            break;
+        case 0xf5:
+            SBC(ZeroPageIndexed);
+            break;
+        case 0xf6:
+            DECINC(ZeroPageIndexed, true);
+            break;
+        case 0xf8:
+            setFlagOpcode(1, Decimal);
+            break;
+        case 0xf9:
+            SBC(AbsoluteIndexedY);
+            break;
+        case 0xfd:
+            SBC(AbsoluteIndexedX);
+            break;
+        case 0xfe:
+            DECINC(AbsoluteIndexedX, true);
+            break;
         default:
             std::cout << "Instruction undefined" << std::endl;
     }

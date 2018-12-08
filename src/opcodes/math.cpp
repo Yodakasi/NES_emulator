@@ -141,7 +141,7 @@ void Cpu::DECINC(int addressingMode, bool add) {
             value = readFromMem(readFromMem(PC_reg+1) + readFromMem(PC_reg+2)*256);
             break;
         case AbsoluteIndexedX:
-            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, true));
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, false));
             break;
     }
     if(add)
@@ -173,7 +173,7 @@ void Cpu::DECINC(int addressingMode, bool add) {
             cycles += 3;
             break;
         case AbsoluteIndexedX:
-            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, true), value);
+            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, false), value);
             PC_reg += 3;
             cycles += 7;
             break;
