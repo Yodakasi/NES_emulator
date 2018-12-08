@@ -71,10 +71,38 @@ void Cpu::load(int addressingMode, int regNum) {
             PC_reg += 2;
             cycles += 3;
             break;
+        case ZeroPageIndexed:
+            if(regNum == X)
+                value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), Y_reg));
+            else
+                value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), X_reg));
+            PC_reg += 2;
+            cycles += 4;
+            break;
+        case Absolute:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
+            PC_reg += 2;
+            cycles += 4;
+            break;
+        case AbsoluteIndexedX:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, true));
+            PC_reg += 3;
+            cycles += 4;
+            break;
+        case AbsoluteIndexedY:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), Y_reg, true));
+            PC_reg += 3;
+            cycles += 4;
+            break;
         case IndexedIndirect:
             value = readFromMem(indexedIndirect(readFromMem(PC_reg+1)));
             PC_reg += 2;
             cycles += 6;
+            break;
+        case IndirectIndexed:
+            value = readFromMem(indirectIndexed(readFromMem(PC_reg+1)));
+            PC_reg += 2;
+            cycles += 5;
             break;
         case Immediate:
             value = readFromMem(PC_reg+1);

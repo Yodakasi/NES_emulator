@@ -44,7 +44,7 @@ void Cpu::fetchOpcode() {
             ASL(ZeroPageIndexed);
             break;
         case 0x18:
-            CLC();
+            setFlagOpcode(0, Carry);
             break;
         case 0x19:
             ORA(AbsoluteIndexedY);
@@ -101,7 +101,7 @@ void Cpu::fetchOpcode() {
             ROL(ZeroPageIndexed);
             break;
         case 0x38:
-            SEC();
+            setFlagOpcode(1, Carry);
             break;
         case 0x39:
             AND(AbsoluteIndexedY);
@@ -149,7 +149,7 @@ void Cpu::fetchOpcode() {
             LSR(ZeroPageIndexed);
             break;
         case 0x58:
-            CLI();
+            setFlagOpcode(0, Interupt);
             break;
         case 0x59:
             EOR(AbsoluteIndexedY);
@@ -203,7 +203,7 @@ void Cpu::fetchOpcode() {
             ROR(ZeroPageIndexed);
             break;
         case 0x78:
-            SEI();
+            setFlagOpcode(1, Interupt);
             break;
         case 0x79:
             ADC(AbsoluteIndexedY);
@@ -280,6 +280,129 @@ void Cpu::fetchOpcode() {
         case 0xaa:
             transfer(A_reg, X);
             break;
+        case 0xac:
+            load(Absolute, Y);
+            break;
+        case 0xad:
+            load(Absolute, A);
+            break;
+        case 0xae:
+            load(Absolute, X);
+            break;
+        case 0xb0:
+            branch(Carry, 1);
+            break;
+        case 0xb1:
+            load(IndirectIndexed, A);
+            break;
+        case 0xb4:
+            load(ZeroPageIndexed, Y);
+            break;
+        case 0xb5:
+            load(ZeroPageIndexed, A);
+            break;
+        case 0xb6:
+            load(ZeroPageIndexed, X);
+            break;
+        case 0xb8:
+            setFlagOpcode(0, Overflow);
+            break;
+        case 0xb9:
+            load(AbsoluteIndexedY, A);
+            break;
+        case 0xba:
+            transfer(SP_reg, X);
+            break;
+        case 0xbc:
+            load(AbsoluteIndexedX, Y);
+            break;
+        case 0xbd:
+            load(AbsoluteIndexedX, A);
+            break;
+        case 0xbe:
+            load(AbsoluteIndexedY, X);
+            break;
+        case 0xc0:
+            compare(Immediate, Y_reg);
+            break;
+        case 0xc1:
+            compare(IndexedIndirect, A_reg);
+            break;
+        case 0xc4:
+            compare(ZeroPage, Y_reg);
+            break;
+        case 0xc5:
+            compare(ZeroPage, A_reg);
+            break;
+        case 0xc6:
+            DECINC(ZeroPage, false);
+            break;
+        case 0xc8:
+            INY();
+            break;
+        case 0xc9:
+            compare(Immediate, A_reg);
+            break;
+        case 0xca:
+            DEX();
+            break;
+        case 0xcc:
+            compare(Absolute, Y_reg);
+            break;
+        case 0xcd:
+            compare(Absolute, A_reg);
+            break;
+        case 0xce:
+            DECINC(Absolute, false);
+            break;
+        case 0xd0:
+            branch(Zero, 0);
+            break;
+        case 0xd1:
+            compare(IndirectIndexed, A_reg);
+            break;
+        case 0xd5:
+            compare(ZeroPageIndexed, A_reg);
+            break;
+        case 0xd6:
+            DECINC(ZeroPageIndexed, false);
+            break;
+        case 0xd8:
+            setFlagOpcode(0, Decimal);
+            break;
+        case 0xd9:
+            compare(AbsoluteIndexedY, A_reg);
+            break;
+        case 0xdd:
+            compare(AbsoluteIndexedX, A_reg);
+            break;
+        case 0xde:
+            DECINC(AbsoluteIndexedX, false);
+            break;
+        case 0xe0:
+            compare(Immediate, X_reg);
+            break;
+        case 0xe1:
+            SBC(IndexedIndirect);
+            break;
+        case 0xe4:
+            compare(ZeroPage, X_reg);
+            break;
+        case 0xe5:
+            SBC(ZeroPage);
+            break;
+        case 0xe6:
+            DECINC(ZeroPage, true);
+            break;
+        case 0xe8:
+            INX();
+            break;
+        case 0xe9:
+            SBC(Immediate);
+            break;
+        case 0xea:
+            NOP();
+            break;
         default:
             std::cout << "Instruction undefined" << std::endl;
     }
@@ -293,4 +416,9 @@ void Cpu::BRK() {
     push(SP_reg);
     PC_reg++;
     cycles += 7;
+}
+
+void Cpu::NOP() {
+    PC_reg++;
+    cycles += 2;
 }

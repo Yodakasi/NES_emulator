@@ -40,9 +40,15 @@ class Cpu {
 
     //system
     void BRK();
+    void NOP();
 
     //math
     void ADC(int addressingMode);
+    void SBC(int addressingMode);
+    void DECINC(int addressingMode, bool add);
+    void DEX();
+    void INY();
+    void INX();
 
     //bitwise
     void ORA(int addressingMode);
@@ -62,10 +68,8 @@ class Cpu {
     void RTI();
 
     //registers
-    void CLI();
-    void SEI();
-    void CLC();
-    void SEC();
+    void setFlagOpcode(int value, int flag);
+    void compare(int addressingMode, uint8_t regValue);
 
     //stack
     void PHA();
