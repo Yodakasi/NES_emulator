@@ -194,6 +194,20 @@ void Cpu::DEX() {
         setFlag(0, Zero);
 }
 
+void Cpu::DEY() {
+    Y_reg--;
+    PC_reg++;
+    cycles += 2;
+    if(Y_reg > 0x7f)
+        setFlag(1, Negative);
+    else
+        setFlag(0, Negative);
+    if(Y_reg == 0)
+        setFlag(1, Zero);
+    else
+        setFlag(0, Zero);
+}
+
 void Cpu::INY() {
     Y_reg++;
     PC_reg++;

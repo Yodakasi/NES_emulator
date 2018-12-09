@@ -2,7 +2,7 @@
 
 void Cpu::fetchOpcode() {
     uint8_t opcode = readFromMem(PC_reg);
-    std::cout << "Current opcode: " << (int)opcode << std::endl;
+    std::cout << std::hex << "Current opcode: " << (int)opcode << std::endl;
     switch(opcode) {
         case 0x00:
             BRK();
@@ -226,6 +226,21 @@ void Cpu::fetchOpcode() {
         case 0x86:
             store(ZeroPage, X_reg);
             break;
+        case 0x88:
+            DEY();
+            break;
+        case 0x8a:
+            transfer(X_reg, A);
+            break;
+        case 0x8c:
+            store(Absolute, Y_reg);
+            break;
+        case 0x8d:
+            store(Absolute, A_reg);
+            break;
+        case 0x8e:
+            store(Absolute, X_reg);
+            break;
         case 0x90:
             branch(Carry, 0);
             break;
@@ -438,6 +453,7 @@ void Cpu::fetchOpcode() {
             break;
         default:
             std::cout << "Instruction undefined" << std::endl;
+            is_cpu_working = false;
     }
 }
 

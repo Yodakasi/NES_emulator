@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <iostream>
+#include <fstream>
 
 class Cpu {
     bool is_cpu_working;
@@ -47,6 +48,7 @@ class Cpu {
     void SBC(int addressingMode);
     void DECINC(int addressingMode, bool add);
     void DEX();
+    void DEY();
     void INY();
     void INX();
 

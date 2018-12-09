@@ -4,12 +4,14 @@
 
 int main() {
     Cpu cpu;
-    if(cpu.getCpuState()) {
+    while(cpu.getCpuState()) {
+        
         cpu.fetchOpcode();
-        cpu.dumpReg();
-        cpu.dumpStack();
-        //cpu.fetchOpcode();
-        cpu.dumpMem();
-        //cpu.dumpReg();
+        
     }
+    cpu.dumpReg();
+    cpu.dumpStack();
+    //cpu.fetchOpcode();
+    cpu.dumpMem();
+    //cpu.dumpReg();
 }

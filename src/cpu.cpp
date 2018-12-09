@@ -3,9 +3,9 @@
 Cpu::Cpu() {
     cycles = 0;
     is_cpu_working = true;
-    A_reg = 0x16;
-    X_reg = 0xff;
-    Y_reg = 4;
+    A_reg = 0;
+    X_reg = 0;
+    Y_reg = 0;
     SP_reg = 0xfd;
     P_reg = 0;
     ZeroMem();
@@ -14,17 +14,15 @@ Cpu::Cpu() {
 }
 
 void Cpu::uploadRom() {
-    writeToMem(0xfffd, 0x80);
-    writeToMem(0xfffc, 0);
-    writeToMem(0x4603, 0x16);
-    writeToMem(0x4604, 0x80);
-    writeToMem(0x4, 0x2);
-    writeToMem(0x5, 0x16);
-    writeToMem(0x8000, 0xfe);
-    writeToMem(0x8001, 0x2);
-    writeToMem(0x8002, 0x46);
-    push(0x80);
-    //push(16);
+    std::ifstream romFile ("../roms/helloworld.nes", std::ifstream::binary);
+    if(romFile.good()) {
+        romFile.seekg(0x10);
+        romFile.read((char *)&memory[0x8000], 0x4000);
+        romFile.seekg(0x10);
+        romFile.read((char *)&memory[0xC000], 0x4000);
+        romFile.close();
+    }
+    cycles = 0;
     
 }
 

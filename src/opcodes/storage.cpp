@@ -12,6 +12,11 @@ void Cpu::store(int addressingMode, uint8_t value, int index) {
             cycles += 4;
             PC_reg += 2;
             break;
+        case Absolute:
+            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false), value);
+            PC_reg += 3;
+            cycles += 4;
+            break;
         case AbsoluteIndexedX:
             writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, true), value);
             cycles += 4;
