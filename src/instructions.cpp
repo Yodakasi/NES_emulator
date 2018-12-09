@@ -2,7 +2,7 @@
 
 void Cpu::fetchOpcode() {
     uint8_t opcode = readFromMem(PC_reg);
-    std::cout << std::hex << "Current opcode: " << (int)opcode << std::endl;
+    std::cout << std::hex << "Current opcode: " << (int)opcode << " " << (int)readFromMem(PC_reg+1) << std::endl;
     switch(opcode) {
         case 0x00:
             BRK();

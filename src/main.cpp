@@ -1,17 +1,21 @@
 #include <iostream>
 #include <cstdint>
-#include "cpu.h"
+#include "nes.h"
 
 int main() {
-    Cpu cpu;
-    while(cpu.getCpuState()) {
-        
-        cpu.fetchOpcode();
-        
+    Nes nes;
+    int i = 0;
+    while(nes.isRunning()) {
+        i++;
+        nes.run();
+        if(i>100) break;
     }
+    nes.dump();
+    /*
     cpu.dumpReg();
     cpu.dumpStack();
     //cpu.fetchOpcode();
     cpu.dumpMem();
     //cpu.dumpReg();
+    */
 }

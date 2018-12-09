@@ -3,27 +3,17 @@
 Cpu::Cpu() {
     cycles = 0;
     is_cpu_working = true;
+    dma = false;
     A_reg = 0;
     X_reg = 0;
     Y_reg = 0;
     SP_reg = 0xfd;
     P_reg = 0;
     ZeroMem();
-    uploadRom();
-    PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);
 }
 
-void Cpu::uploadRom() {
-    std::ifstream romFile ("../roms/helloworld.nes", std::ifstream::binary);
-    if(romFile.good()) {
-        romFile.seekg(0x10);
-        romFile.read((char *)&memory[0x8000], 0x4000);
-        romFile.seekg(0x10);
-        romFile.read((char *)&memory[0xC000], 0x4000);
-        romFile.close();
-    }
-    cycles = 0;
-    
+void Cpu::setPCReg() {
+    PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);
 }
 
 void Cpu::ZeroMem() {
@@ -84,8 +74,32 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
             memory[address+(i*8)] = value;
         }
     }
+    else if(address == 0x4014) {
+        dma = true;
+    }
 }
 
+void Cpu::handleNMIInterupt() {
+    push((PC_reg) >> 8);
+    push((PC_reg) & 0x00ff);
+    push(P_reg);
+    PC_reg = readFromMem(0xfffb) * 256 + readFromMem(0xfffa);
+    memory[0x2002] &= 0x7f;
+}
+
+uint8_t *Cpu::dmaBegin() {
+    std::cout << "coping from " << (int)(memory[0x4014] * 0x100) << std::endl;
+    return &(memory[memory[0x4014] * 0x100]);
+}
+
+uint8_t *Cpu::dmaEnd() {
+    return &(memory[0xff + memory[0x4014] * 0x100]);
+    if(++cycles & 1)
+        cycles += 257;
+    else
+        cycles += 256;
+    dma = false;
+}
 
 void Cpu::push(uint8_t value) {
     SP_reg--;
@@ -109,6 +123,22 @@ void Cpu::setFlag(uint8_t value, uint8_t n) {
 
 bool Cpu::getFlag(uint8_t n) const {
     return ((P_reg & ( 1 << n )) >> n) == 1;
+}
+
+bool Cpu::getNMIFlag() {
+    return ((memory[0x2002] & 0x80) >> 7) == 1;
+}
+
+uint8_t Cpu::getIORegister(uint16_t address) {
+    if((address >= 0x2000) && (address < 0x4000))
+        return memory[address];
+    return 0;
+}
+
+uint8_t *Cpu::getIORegisterPointer(uint16_t address) {
+    if((address >= 0x2000) && (address < 0x4020))
+        return &memory[address];
+    return nullptr;
 }
 
 uint16_t Cpu::zeroPageIndexed(uint8_t arg, uint8_t offset) const {

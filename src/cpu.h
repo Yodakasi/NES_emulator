@@ -5,6 +5,7 @@
 
 class Cpu {
     bool is_cpu_working;
+    bool dma;
     uint16_t PC_reg;
     uint8_t SP_reg;
     uint8_t A_reg;
@@ -12,7 +13,6 @@ class Cpu {
     uint8_t X_reg;
     uint8_t P_reg;
     uint8_t memory[0xffff];
-    mutable unsigned int cycles;
     enum flags {Carry, Zero, Interupt, Decimal, Break, Overflow = 6, Negative};
     enum adressingModes {ZeroPage, ZeroPageIndexed, Absolute, AbsoluteIndexedX, AbsoluteIndexedY, IndexedIndirect, IndirectIndexed, Immediate, Accumulator, Indirect};
     enum registers {A, X, Y, SP};
@@ -20,6 +20,7 @@ class Cpu {
     //memory operations
     uint8_t readFromMem(uint16_t address) const;
     void writeToMem(uint16_t address, uint8_t value);
+    
 
     //flag register operations
     void setFlag(uint8_t value, uint8_t n);
@@ -86,11 +87,23 @@ class Cpu {
 
 public:
     Cpu();
+    mutable unsigned int cycles;
     void fetchOpcode();
-    void uploadRom();
     void ZeroMem();
     void dumpMem() const;
     void dumpReg() const;
     void dumpStack() const;
     bool getCpuState() const {return is_cpu_working;}
+    bool getDmaFlag() const {return dma;}
+    uint8_t *dmaBegin();
+    uint8_t *dmaEnd();
+    uint8_t *getFirstInsSeg() {return &memory[0x8000];}
+    uint8_t *getSecondInsSeg() {return &memory[0xC000];}
+    uint8_t getIORegister(uint16_t address);
+    void setPCReg();
+    uint8_t *getIORegisterPointer(uint16_t address);
+    void handleNMIInterupt();
+    bool getNMIFlag();
+    
+
 };
