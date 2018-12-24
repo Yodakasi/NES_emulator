@@ -44,7 +44,9 @@ void Cpu::JSR() {
 void Cpu::RTI() {
     P_reg = pop();
     PC_reg = pop() + pop() * 256;
+    std::cout << "RTI " << (int)PC_reg << std::endl;
     cycles += 6;
+    inNMI = false;
 }
 
 void Cpu::RTS() {

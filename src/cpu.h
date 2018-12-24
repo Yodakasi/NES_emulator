@@ -88,6 +88,9 @@ class Cpu {
 public:
     Cpu();
     mutable unsigned int cycles;
+    bool newVal;
+    bool inNMI;
+    uint8_t regAddr;
     void fetchOpcode();
     void ZeroMem();
     void dumpMem() const;
@@ -96,9 +99,9 @@ public:
     bool getCpuState() const {return is_cpu_working;}
     bool getDmaFlag() const {return dma;}
     uint8_t *dmaBegin();
-    uint8_t *dmaEnd();
     uint8_t *getFirstInsSeg() {return &memory[0x8000];}
     uint8_t *getSecondInsSeg() {return &memory[0xC000];}
+    uint8_t *getRam() {return &memory[0x200];}
     uint8_t getIORegister(uint16_t address);
     void setPCReg();
     uint8_t *getIORegisterPointer(uint16_t address);

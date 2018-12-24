@@ -8,7 +8,7 @@ int main() {
     while(nes.isRunning()) {
         i++;
         nes.run();
-        if(i>100) break;
+        if(i>110000) break;
     }
     nes.dump();
     /*

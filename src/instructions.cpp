@@ -2,7 +2,7 @@
 
 void Cpu::fetchOpcode() {
     uint8_t opcode = readFromMem(PC_reg);
-    std::cout << std::hex << "Current opcode: " << (int)opcode << " " << (int)readFromMem(PC_reg+1) << std::endl;
+    //std::cout << std::hex << "Current opcode: " << (int)opcode << " " << (int)readFromMem(PC_reg+1) << std::endl;
     switch(opcode) {
         case 0x00:
             BRK();
@@ -453,6 +453,7 @@ void Cpu::fetchOpcode() {
             break;
         default:
             std::cout << "Instruction undefined" << std::endl;
+            std::cout << std::hex << "Current opcode: " << (int)opcode << " " << (int)readFromMem(PC_reg+1) << std::endl << "PC " << (int)PC_reg << std::endl;
             is_cpu_working = false;
     }
 }
@@ -460,9 +461,9 @@ void Cpu::fetchOpcode() {
 //System instructions
 
 void Cpu::BRK() {
-    setFlag(1, Interupt);
-    push(PC_reg+2);
-    push(SP_reg);
+    //setFlag(1, Interupt);
+    //push(PC_reg+2);
+    //push(SP_reg);
     PC_reg++;
     cycles += 7;
 }

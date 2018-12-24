@@ -9,6 +9,7 @@ Cpu::Cpu() {
     Y_reg = 0;
     SP_reg = 0xfd;
     P_reg = 0;
+    inNMI = false;
     ZeroMem();
 }
 
@@ -73,6 +74,8 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
         for(int i=1; i<0x3ff; i++) {
             memory[address+(i*8)] = value;
         }
+        newVal = true;
+        regAddr = address % 0x2000;
     }
     else if(address == 0x4014) {
         dma = true;
@@ -82,32 +85,36 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
 void Cpu::handleNMIInterupt() {
     push((PC_reg) >> 8);
     push((PC_reg) & 0x00ff);
+    std::cout << std::hex << "PC on NMI " << (int)PC_reg << std::endl << "cycles " << (int)cycles << std::endl;
     push(P_reg);
     PC_reg = readFromMem(0xfffb) * 256 + readFromMem(0xfffa);
-    memory[0x2002] &= 0x7f;
+    std::cout << std::hex << "new PC on NMI " << (int)PC_reg << std::endl;
+    writeToMem(0x2000, readFromMem(0x2000) & 0x7f);
+    inNMI = true;
 }
 
 uint8_t *Cpu::dmaBegin() {
-    std::cout << "coping from " << (int)(memory[0x4014] * 0x100) << std::endl;
-    return &(memory[memory[0x4014] * 0x100]);
-}
-
-uint8_t *Cpu::dmaEnd() {
-    return &(memory[0xff + memory[0x4014] * 0x100]);
+    std::cout << "coping from " << std::hex << (int)(memory[0x4014] * 0x100) << std::endl;
     if(++cycles & 1)
         cycles += 257;
     else
         cycles += 256;
     dma = false;
+    return &(memory[memory[0x4014] * 0x100]);
 }
+
+
 
 void Cpu::push(uint8_t value) {
     SP_reg--;
     writeToMem(SP_reg + 0x100, value);
+    std::cout << "push " << std::hex << (int)PC_reg << std::endl;
 }
 
 uint8_t Cpu::pop() {
     uint8_t value = readFromMem(SP_reg + 0x100);
+    //writeToMem(0x100 + SP_reg, 0); //remove later
+    std::cout << "pop " << std::hex << (int)PC_reg << std::endl;
     SP_reg++;
     return value;
 }
@@ -126,7 +133,7 @@ bool Cpu::getFlag(uint8_t n) const {
 }
 
 bool Cpu::getNMIFlag() {
-    return ((memory[0x2002] & 0x80) >> 7) == 1;
+    return (((memory[0x2002] & 0x80) >> 7) == 1) && !inNMI;
 }
 
 uint8_t Cpu::getIORegister(uint16_t address) {
