@@ -2,7 +2,7 @@ SRC = src/main.cpp src/cpu.cpp src/instructions.cpp src/nes.cpp src/ppu.cpp src/
 DST = bin/nes_emu
 
 rule:
-	g++ -Wall $(SRC) -o $(DST)
+	g++ -Wall $(SRC) -o $(DST) -lSDL2
 
 clean:
 	rm -f bin/nes_emu

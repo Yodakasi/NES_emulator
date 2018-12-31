@@ -3,9 +3,11 @@
 void Nes::run() {
     cpu.fetchOpcode();
     if(cpu.getDmaFlag()) {
-        ppu.writeOamData(cpu.dmaBegin(), cpu.dmaBegin()+0xff);
+        uint8_t *address = cpu.dmaBegin(); 
+        ppu.writeOamData(address, address+0xff);
     }
     if(cpu.getNMIFlag()) {
+        std::cout << "DUUUPAAA" << std::endl;
         cpu.handleNMIInterupt();
     }
     ppu.communicateWithCpu(cpu);
@@ -24,7 +26,7 @@ void Nes::dump() const {
 }
 
 void Nes::uploadRom() {
-    std::ifstream romFile ("../roms/helloworld.nes", std::ifstream::binary);
+    std::ifstream romFile ("../roms/dk.nes", std::ifstream::binary);
     romFile.seekg(0x4);
     uint8_t pkgSize = romFile.peek();
     romFile.seekg(0x5);

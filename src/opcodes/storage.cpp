@@ -86,7 +86,7 @@ void Cpu::load(int addressingMode, int regNum) {
             break;
         case Absolute:
             value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false));
-            PC_reg += 2;
+            PC_reg += 3;
             cycles += 4;
             break;
         case AbsoluteIndexedX:

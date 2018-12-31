@@ -8,7 +8,7 @@ Cpu::Cpu() {
     X_reg = 0;
     Y_reg = 0;
     SP_reg = 0xfd;
-    P_reg = 0;
+    P_reg = 0x34;
     inNMI = false;
     ZeroMem();
 }
@@ -83,13 +83,20 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
 }
 
 void Cpu::handleNMIInterupt() {
+    fetchOpcode();
+    fetchOpcode();
+    fetchOpcode();
     push((PC_reg) >> 8);
     push((PC_reg) & 0x00ff);
     std::cout << std::hex << "PC on NMI " << (int)PC_reg << std::endl << "cycles " << (int)cycles << std::endl;
+    std::cout << "PC_REG0x2000 " << std::hex << (int)readFromMem(0x2000) << std::endl;
+    std::cout << "PC_REG0x2002 " << std::hex << (int)readFromMem(0x2002) << std::endl;
     push(P_reg);
     PC_reg = readFromMem(0xfffb) * 256 + readFromMem(0xfffa);
-    std::cout << std::hex << "new PC on NMI " << (int)PC_reg << std::endl;
-    writeToMem(0x2000, readFromMem(0x2000) & 0x7f);
+    //std::cout << std::hex << "co " << (int)readFromMem(0x2000) << std::endl;
+    writeToMem(0x2000, (readFromMem(0x2000) & 0x7f));
+    writeToMem(0x2002, (readFromMem(0x2002) & 0x7f)); // not permament
+    //std::cout << std::hex << "co " << (int)readFromMem(0x2000) << std::endl;
     inNMI = true;
 }
 
@@ -108,13 +115,13 @@ uint8_t *Cpu::dmaBegin() {
 void Cpu::push(uint8_t value) {
     SP_reg--;
     writeToMem(SP_reg + 0x100, value);
-    std::cout << "push " << std::hex << (int)PC_reg << std::endl;
+    std::cout << "push " << std::hex << (int)value << std::endl;
 }
 
 uint8_t Cpu::pop() {
     uint8_t value = readFromMem(SP_reg + 0x100);
     //writeToMem(0x100 + SP_reg, 0); //remove later
-    std::cout << "pop " << std::hex << (int)PC_reg << std::endl;
+    std::cout << "pop " << std::hex << (int)value << std::endl;
     SP_reg++;
     return value;
 }
@@ -133,7 +140,7 @@ bool Cpu::getFlag(uint8_t n) const {
 }
 
 bool Cpu::getNMIFlag() {
-    return (((memory[0x2002] & 0x80) >> 7) == 1) && !inNMI;
+    return (((memory[0x2000] & 0x80) == 0x80) && ((memory[0x2002] & 0x80) == 0x80) && !inNMI);
 }
 
 uint8_t Cpu::getIORegister(uint16_t address) {

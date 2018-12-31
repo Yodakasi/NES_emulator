@@ -73,13 +73,15 @@ void Ppu::communicateWithCpu(Cpu &cpu) {
     }
     if((cpu.cycles >= 27280) && (cpu.cycles < 29781) && !inNMI) {
         *registers[0] |= 0x80;
+        //if((*registers[0] & 0x80) == 0x80)
         *registers[2] |= 0x80;
         std::cout << "NMI!!!" << std::endl;
         inNMI = true;
     }
-    else if (cpu.cycles >= 29781) {
+    else if (cpu.cycles >= 29781 && inNMI) {
         *registers[2] &= 0x7f;
         cpu.cycles = 0;
         inNMI = false;
+        std::cout << "stop NMI!!!" << std::endl;
     }
 }
