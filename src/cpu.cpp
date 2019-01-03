@@ -71,6 +71,7 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
         }
     }
     else if(address >= 0x2000 && address <= 0x2007) {
+        std::cout << "address " << std::hex << (int)address << "value " << (int)value << std::endl;
         for(int i=1; i<0x3ff; i++) {
             memory[address+(i*8)] = value;
         }

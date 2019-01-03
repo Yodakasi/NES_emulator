@@ -13,8 +13,8 @@ int main() {
     int i = 0;
     while(nes.isRunning()) {
         i++;
-        nes.run();
-        //if(i>200000) break;
+        nes.run(renderer);
+        if(i>200000) break;
         SDL_PollEvent(&e);
         if (e.type == SDL_QUIT) {
             SDL_Log("Program quit after %i ticks", e.quit.timestamp);
@@ -23,6 +23,8 @@ int main() {
 
     }
     nes.dump();
+    for(int i=0; i<240; i++)
+        nes.testPpu();
     SDL_DestroyWindow(window);
     SDL_Quit();
     /*

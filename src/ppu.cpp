@@ -8,11 +8,13 @@ Ppu::Ppu(Cpu &cpu) {
     }
     addressToWriteIterator = 0;
     inNMI = false;
+    scanline = 0;
+    cycles = 0;
 }
 
 void Ppu::writeOamData(uint8_t *dataStart, uint8_t *dataEnd) {
-    std::copy(dataStart, dataEnd, &memory[0x2000]);
-    std::copy(dataStart, dataEnd, &memory[0x3000]);
+    std::copy(dataStart, dataEnd, &OAMMemory[0]);
+    //std::copy(dataStart, dataEnd, &memory[0x3000]);
 }
 
 void Ppu::dumpMem() const {
@@ -22,6 +24,16 @@ void Ppu::dumpMem() const {
             std::cout << std::endl << i << ": ";
         }
         std::cout << (int)memory[i] << " ";
+    }
+    std::cout << std::endl << std::endl;
+    std::cout << "OAM Memory" << std::endl;
+    for(int i=0; i<0x100; i++) {
+        std::cout << (int)OAMMemory[i] << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Attribute table " << std::endl;
+    for(int i=0; i<64; i++) {
+        std::cout << (int)memory[i + 0x23c0] << " ";
     }
     std::cout << std::endl;
 }
@@ -42,9 +54,9 @@ void Ppu::writeToMem(uint16_t address, uint8_t data) {
             memory[address+(i*0x20)] = data;
         }
     }
-} //didnt check yet
+}
 
-uint8_t Ppu::readFromMem(uint16_t address) {
+inline uint8_t Ppu::readFromMem(uint16_t address) {
     return memory[address % 0x4000];
 }
 
@@ -67,7 +79,8 @@ void Ppu::communicateWithCpu(Cpu &cpu) {
         }
         else if(cpu.regAddr == 7) {
             writeToMem(addressToWrite, *registers[7]);
-            (*registers[7])++;
+            addressToWrite++;
+            std::cout << "no pisze co chcesz " << (int)addressToWrite << " " << (int)*registers[7] << std::endl;
         }
         cpu.newVal = false;
     }
@@ -84,4 +97,53 @@ void Ppu::communicateWithCpu(Cpu &cpu) {
         inNMI = false;
         std::cout << "stop NMI!!!" << std::endl;
     }
+}
+
+void Ppu::setPalletes() {
+    for(int i=0; i<4; i++) {
+        imagePallete[0][i] = readFromMem(0x3f00);
+        spritePallete[0][i] = readFromMem(0x3f00);
+    }
+    for(int i=0; i<4; i++) {
+        for(int j=1; j<4; j++) {
+            imagePallete[j][i] = readFromMem(0x3f00 + j + i*4);
+            spritePallete[j][i] = readFromMem(0x3f10 + j + i*4);
+        }
+    }
+}
+
+void Ppu::renderScanline() {
+    if(scanline < 240) {
+        if(scanline == 0) {
+            setPalletes();
+        }
+        uint8_t renderedLine[0x100];
+        for(int i=0; i<256; i++) {
+            int palleteNumber;
+            uint8_t address = readFromMem(0x2000 + (scanline/8)*0x1f + i);
+            //std::cout << "address " << std::hex << (int)address << std::endl;
+            if((scanline/8) & 1) {
+                if(i/16 & 1)
+                    palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/8)*8) & 3;
+                else
+                    palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/8)*8) >> 2) & 3;
+                    
+            }
+            else {
+                if(i/16 & 1)
+                    palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/8)*8) >> 4) & 3;
+                else
+                    palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/8)*8) >> 6;
+            }
+            int patterTablePart = (((readFromMem(address*16 + scanline % 8) & (1 << (7 - (i % 8)))) >> (7 - (i % 8))) * 2) + ((readFromMem(address*16 + scanline % 8 + 8) & (1 << (7 - (i % 8)))) >> (7 - (i % 8)));
+            std::cout << (int)imagePallete[patterTablePart][palleteNumber] << " ";
+        }
+        std::cout << std::endl;
+        
+    }
+    else if (scanline == 240) {
+        inNMI = true;
+    }
+    scanline++;
+    cycles += 341;
 }

@@ -1,6 +1,6 @@
 #include "nes.h"
 
-void Nes::run() {
+void Nes::run(SDL_Renderer *renderer) {
     cpu.fetchOpcode();
     if(cpu.getDmaFlag()) {
         uint8_t *address = cpu.dmaBegin(); 
@@ -11,6 +11,10 @@ void Nes::run() {
         cpu.handleNMIInterupt();
     }
     ppu.communicateWithCpu(cpu);
+}
+
+void Nes::testPpu() {
+    ppu.renderScanline();
 }
 
 bool Nes::isRunning() const {
