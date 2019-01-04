@@ -1,5 +1,5 @@
 #include "ppu.h"
-
+#include "palleteColors.h"
 
 Ppu::Ppu(Cpu &cpu) {
     ZeroMem();
@@ -14,6 +14,7 @@ Ppu::Ppu(Cpu &cpu) {
 
 void Ppu::writeOamData(uint8_t *dataStart, uint8_t *dataEnd) {
     std::copy(dataStart, dataEnd, &OAMMemory[0]);
+    std::cout << "DMAAAAAAA" << std::endl;
     //std::copy(dataStart, dataEnd, &memory[0x3000]);
 }
 
@@ -80,23 +81,26 @@ void Ppu::communicateWithCpu(Cpu &cpu) {
         else if(cpu.regAddr == 7) {
             writeToMem(addressToWrite, *registers[7]);
             addressToWrite++;
-            std::cout << "no pisze co chcesz " << (int)addressToWrite << " " << (int)*registers[7] << std::endl;
+            std::cout << "no pisze co chcesz " << std::hex << (int)addressToWrite << " " << (int)*registers[7] << std::endl;
         }
         cpu.newVal = false;
     }
+    /*
     if((cpu.cycles >= 27280) && (cpu.cycles < 29781) && !inNMI) {
-        *registers[0] |= 0x80;
+        // *registers[0] |= 0x80;
         //if((*registers[0] & 0x80) == 0x80)
         *registers[2] |= 0x80;
         std::cout << "NMI!!!" << std::endl;
         inNMI = true;
     }
+    
     else if (cpu.cycles >= 29781 && inNMI) {
         *registers[2] &= 0x7f;
         cpu.cycles = 0;
         inNMI = false;
         std::cout << "stop NMI!!!" << std::endl;
     }
+    */
 }
 
 void Ppu::setPalletes() {
@@ -112,22 +116,37 @@ void Ppu::setPalletes() {
     }
 }
 
-void Ppu::renderScanline() {
+void Ppu::renderScanline(SDL_Renderer *renderer) {
     if(scanline < 240) {
         if(scanline == 0) {
             setPalletes();
+            SDL_RenderClear(renderer);
         }
-        uint8_t renderedLine[0x100];
+        int spriteSize ;
+        //writeToMem(0x2000, 15);
+        //writeToMem(0x2001, 14);
+        //writeToMem(0x2021, 13);
+        int offset;
+        if(*registers[0] & 16)
+            offset = 0x1000;
+        else
+            offset = 0;
+        if(*registers[0] & 32) {
+            spriteSize = 16;
+            offset = 0;
+        }
+        else
+            spriteSize = 8;
         for(int i=0; i<256; i++) {
             int palleteNumber;
-            uint8_t address = readFromMem(0x2000 + (scanline/8)*0x1f + i);
-            //std::cout << "address " << std::hex << (int)address << std::endl;
+            uint8_t address = readFromMem(0x2000 + (scanline/spriteSize)*32 + i/8);
+            std::cout << " " << std::hex << (int)(0x2000 + (scanline/spriteSize)*32 + i/8);
+            
             if((scanline/8) & 1) {
                 if(i/16 & 1)
                     palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/8)*8) & 3;
                 else
-                    palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/8)*8) >> 2) & 3;
-                    
+                    palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/8)*8) >> 2) & 3;    
             }
             else {
                 if(i/16 & 1)
@@ -135,14 +154,31 @@ void Ppu::renderScanline() {
                 else
                     palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/8)*8) >> 6;
             }
-            int patterTablePart = (((readFromMem(address*16 + scanline % 8) & (1 << (7 - (i % 8)))) >> (7 - (i % 8))) * 2) + ((readFromMem(address*16 + scanline % 8 + 8) & (1 << (7 - (i % 8)))) >> (7 - (i % 8)));
-            std::cout << (int)imagePallete[patterTablePart][palleteNumber] << " ";
+            int patterTablePart = (((readFromMem(offset + address*(spriteSize*2) + scanline % spriteSize) & (1 << (7 - (i % 8)))) >> (7 - (i % 8))) * 2) 
+                                   + ((readFromMem(offset + address*(spriteSize*2) + scanline % spriteSize + spriteSize) & (1 << (7 - (i % 8)))) >> (7 - (i % 8)));
+            //int patterTablePart = readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize)
+            
+            //std::cout << "first " << (int)readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize) << " second " << (int)readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize + spriteSize) << " " << (int)patterTablePart << " ";
+            SDL_SetRenderDrawColor(renderer, palleteColors::pallete[imagePallete[patterTablePart][palleteNumber]].r,
+                                             palleteColors::pallete[imagePallete[patterTablePart][palleteNumber]].g,
+                                             palleteColors::pallete[imagePallete[patterTablePart][palleteNumber]].b, 255);
+            SDL_RenderDrawPoint(renderer, i, scanline);
         }
+        //for(int i=0; i<32; i++)
+        //std::cout << (int)readFromMem(0x1000 + 0x10*(spriteSize*2) + scanline % spriteSize) << " ";
         std::cout << std::endl;
         
     }
-    else if (scanline == 240) {
-        inNMI = true;
+    else if (scanline == 241) {
+        SDL_RenderPresent(renderer);
+        *registers[2] |= 0x80;
+        //*registers[0] |= 0x80;
+        std::cout << "NMI!!!" << std::endl;
+    }
+    else if(scanline == 260) {
+        *registers[2] &= 0x7f;
+        scanline = -1;
+        std::cout << "stop NMI!!!" << std::endl;
     }
     scanline++;
     cycles += 341;

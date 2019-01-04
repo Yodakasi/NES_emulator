@@ -71,7 +71,7 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
         }
     }
     else if(address >= 0x2000 && address <= 0x2007) {
-        std::cout << "address " << std::hex << (int)address << "value " << (int)value << std::endl;
+        //std::cout << "address " << std::hex << (int)address << "value " << (int)value << std::endl;
         for(int i=1; i<0x3ff; i++) {
             memory[address+(i*8)] = value;
         }
@@ -84,25 +84,25 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
 }
 
 void Cpu::handleNMIInterupt() {
-    fetchOpcode();
-    fetchOpcode();
-    fetchOpcode();
+    //fetchOpcode();
+    //fetchOpcode();
+    //fetchOpcode();
     push((PC_reg) >> 8);
     push((PC_reg) & 0x00ff);
-    std::cout << std::hex << "PC on NMI " << (int)PC_reg << std::endl << "cycles " << (int)cycles << std::endl;
-    std::cout << "PC_REG0x2000 " << std::hex << (int)readFromMem(0x2000) << std::endl;
-    std::cout << "PC_REG0x2002 " << std::hex << (int)readFromMem(0x2002) << std::endl;
+    //std::cout << std::hex << "PC on NMI " << (int)PC_reg << std::endl << "cycles " << (int)cycles << std::endl;
+    //std::cout << "PC_REG0x2000 " << std::hex << (int)readFromMem(0x2000) << std::endl;
+    //std::cout << "PC_REG0x2002 " << std::hex << (int)readFromMem(0x2002) << std::endl;
     push(P_reg);
     PC_reg = readFromMem(0xfffb) * 256 + readFromMem(0xfffa);
     //std::cout << std::hex << "co " << (int)readFromMem(0x2000) << std::endl;
-    writeToMem(0x2000, (readFromMem(0x2000) & 0x7f));
+    //writeToMem(0x2000, (readFromMem(0x2000) & 0x7f));
     writeToMem(0x2002, (readFromMem(0x2002) & 0x7f)); // not permament
     //std::cout << std::hex << "co " << (int)readFromMem(0x2000) << std::endl;
     inNMI = true;
 }
 
 uint8_t *Cpu::dmaBegin() {
-    std::cout << "coping from " << std::hex << (int)(memory[0x4014] * 0x100) << std::endl;
+    //std::cout << "coping from " << std::hex << (int)(memory[0x4014] * 0x100) << std::endl;
     if(++cycles & 1)
         cycles += 257;
     else
@@ -116,13 +116,13 @@ uint8_t *Cpu::dmaBegin() {
 void Cpu::push(uint8_t value) {
     SP_reg--;
     writeToMem(SP_reg + 0x100, value);
-    std::cout << "push " << std::hex << (int)value << std::endl;
+    //std::cout << "push " << std::hex << (int)value << std::endl;
 }
 
 uint8_t Cpu::pop() {
     uint8_t value = readFromMem(SP_reg + 0x100);
     //writeToMem(0x100 + SP_reg, 0); //remove later
-    std::cout << "pop " << std::hex << (int)value << std::endl;
+    //std::cout << "pop " << std::hex << (int)value << std::endl;
     SP_reg++;
     return value;
 }

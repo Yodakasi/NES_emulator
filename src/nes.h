@@ -6,6 +6,7 @@
 class Nes {
     Cpu cpu;
     Ppu ppu;
+    unsigned int cyclesdiff;
 public:
     Nes() : cpu(), ppu(cpu) {uploadRom(); cpu.setPCReg();};
     void run(SDL_Renderer *renderer);
@@ -13,5 +14,5 @@ public:
     bool isRunning() const;
     void uploadRom();
 
-    void testPpu();
+    void testPpu(SDL_Renderer *renderer);
 };

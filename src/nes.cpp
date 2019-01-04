@@ -11,10 +11,13 @@ void Nes::run(SDL_Renderer *renderer) {
         cpu.handleNMIInterupt();
     }
     ppu.communicateWithCpu(cpu);
+    if(cpu.cycles * 3 - ppu.getCycles() > 341) {
+        ppu.renderScanline(renderer);
+    }
 }
 
-void Nes::testPpu() {
-    ppu.renderScanline();
+void Nes::testPpu(SDL_Renderer *renderer) {
+    ppu.renderScanline(renderer);
 }
 
 bool Nes::isRunning() const {

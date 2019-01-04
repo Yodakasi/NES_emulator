@@ -44,7 +44,6 @@ void Cpu::ORA(int addressingMode) {
             PC_reg += 2;
             break;
     }
-    std::cout << "walue: " << (int)value << " " << (int)A_reg << std::endl;
     uint8_t result = value | A_reg;
 
     if(result > 0x7f)
@@ -79,6 +78,11 @@ void Cpu::AND(int addressingMode) {
             break;
         case AbsoluteIndexedY:
             value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), Y_reg, true));
+            cycles += 4;
+            PC_reg += 3;
+            break;
+        case AbsoluteIndexedX:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, true));
             cycles += 4;
             PC_reg += 3;
             break;
@@ -187,6 +191,10 @@ void Cpu::ROL(int addressingMode) {
         case Accumulator:
             value = A_reg;
             break;
+        case AbsoluteIndexedX:
+            value = readFromMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, false));
+            break;
+
     }
     uint8_t result = value << 1;
     if(getFlag(Carry)) 
@@ -215,6 +223,11 @@ void Cpu::ROL(int addressingMode) {
             writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), 0, false), result);
             PC_reg += 3;
             cycles += 6;
+            break;
+        case AbsoluteIndexedX:
+            writeToMem(absoluteIndexed(readFromMem(PC_reg+1), readFromMem(PC_reg+2), X_reg, false), result);
+            PC_reg += 3;
+            cycles += 7;
             break;
         case Accumulator:
             //A_reg = result;

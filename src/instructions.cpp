@@ -106,6 +106,12 @@ void Cpu::fetchOpcode() {
         case 0x39:
             AND(AbsoluteIndexedY);
             break;
+        case 0x3d:
+            AND(AbsoluteIndexedX);
+            break;
+        case 0x3e:
+            ROL(AbsoluteIndexedX);
+            break;
         case 0x40:
             RTI();
             break;

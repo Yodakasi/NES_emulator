@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include "cpu.h"
+#include <SDL2/SDL.h>
 
 class Ppu {
     uint8_t *registers[8];
@@ -27,5 +28,6 @@ public:
     void dumpMem() const;
     uint8_t *getChrRam() {return &memory[0];};
     void ZeroMem();
-    void renderScanline();
+    void renderScanline(SDL_Renderer *renderer);
+    unsigned int getCycles() {return cycles;}
 };

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include <unistd.h>
 #include <SDL2/SDL.h>
 #include "nes.h"
 
@@ -14,7 +15,7 @@ int main() {
     while(nes.isRunning()) {
         i++;
         nes.run(renderer);
-        if(i>200000) break;
+        //if(i>200000) break;
         SDL_PollEvent(&e);
         if (e.type == SDL_QUIT) {
             SDL_Log("Program quit after %i ticks", e.quit.timestamp);
@@ -23,8 +24,12 @@ int main() {
 
     }
     nes.dump();
-    for(int i=0; i<240; i++)
-        nes.testPpu();
+    //for(int i=0; i<=440; i++)
+    //    nes.testPpu(renderer);
+
+
+    
+    sleep(10);
     SDL_DestroyWindow(window);
     SDL_Quit();
     /*
