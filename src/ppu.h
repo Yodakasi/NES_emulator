@@ -14,6 +14,7 @@ struct spriteInfo {
     bool flipVert;
     bool inFront;
     uint8_t xPos;
+    uint8_t yPos;
 };
 
 class Ppu {
@@ -33,6 +34,7 @@ class Ppu {
     uint8_t spritePallete[4][4];
     bool inNMI;
     spriteInfo sprites[8];
+    int lineSpritesNum;
     void writeToMem(uint16_t address, uint8_t data);
     inline uint8_t readFromMem(uint16_t address);
     void setPalletes();

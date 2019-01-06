@@ -34,7 +34,7 @@ void Nes::dump() const {
 }
 
 void Nes::uploadRom() {
-    std::ifstream romFile ("../roms/donkey_kong.nes", std::ifstream::binary);
+    std::ifstream romFile ("../roms/nestest.nes", std::ifstream::binary);
     romFile.seekg(0x4);
     uint8_t pkgSize = romFile.peek();
     romFile.seekg(0x5);

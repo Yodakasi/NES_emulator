@@ -17,6 +17,7 @@ Ppu::Ppu(Cpu &cpu) {
 
 void Ppu::writeOamData(uint8_t *dataStart, uint8_t *dataEnd) {
     std::copy(dataStart, dataEnd, &OAMMemory[0]);
+    //std::cout << "DMA" << std::endl;
 }
 
 void Ppu::dumpMem() const {
@@ -149,12 +150,15 @@ void Ppu::setPalletes() {
 
 void Ppu::fetchSprites() {
     int j = 0;
+    lineSpritesNum = 0;
     for(int i=0; i<8; i++) {
-        while(scanline != OAMMemory[j*4]) {
+        while((scanline - OAMMemory[j*4] < 0) || (scanline - OAMMemory[j*4] >= 8)) {
             j++;
-            if(j == 65)
+            if(j > 63)
                 return;
         }
+        lineSpritesNum++;
+        sprites[i].yPos = OAMMemory[j*4];
         sprites[i].bankNum = OAMMemory[j*4 + 1] & 1;
         if(*registers[0] & 32)
             sprites[i].bankNum = 0;
@@ -173,6 +177,8 @@ void Ppu::fetchSprites() {
         else
             sprites[i].flipVert = false;
         sprites[i].xPos = OAMMemory[j*4 + 3];
+        j++;
+        //std::cout << std::hex << "i " << i << " j " << j << " scanline " << scanline << " x " << (int)sprites[i].xPos << " y " << (int)sprites[i].yPos << " index " << (int)sprites[i].index << std::endl;
     }
 }
 
@@ -181,9 +187,7 @@ void Ppu::renderScanline(SDL_Renderer *renderer) {
         if(scanline == 0) {
             setPalletes();
             SDL_RenderClear(renderer);
-        }
-        if(scanline % 8 == 0) {
-            fetchSprites();
+            *registers[2] &= 0xbf;
         }
         int spriteSize;
         int offset;
@@ -197,32 +201,70 @@ void Ppu::renderScanline(SDL_Renderer *renderer) {
         }
         else
             spriteSize = 8;
-        //std::cout << (int)scrollx << " " << (int)scrolly;
+        fetchSprites();
         for(int i=0; i<256; i++) {
-            int palleteNumber;
-            uint8_t address = readFromMem(0x2000 + (scanline/spriteSize)*32 + i/8 + scrollx + scrolly*32);
-            //std::cout << " " << std::hex << (int)(0x2000 + (scanline/spriteSize)*32 + i/8 + scrollx + scrolly*32);
+            int patterTablePartBackground;
+            if(*registers[1] & 8) {
+                int palleteNumber;
+                uint8_t address = readFromMem(0x2000 + (scanline/spriteSize)*32 + i/8);
+                //std::cout << " " << std::hex << (int)(0x2000 + (scanline/spriteSize)*32 + i/8 + scrollx + scrolly*32);
 
-            if((scanline/16) & 1) {
-                if((i/8) & 1)
-                    palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/32)*8) >> 4) & 3;
-                else
-                    palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/32)*8) >> 6;
+                if((scanline/16) & 1) {
+                    if((i/16) & 1)
+                        palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/32)*8) >> 6;
+                    else
+                        palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/32)*8) >> 4) & 3;      
+                }
+                else {
+                    if((i/16) & 1)
+                        palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/32)*8) >> 2) & 3;
+                    else
+                        palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/32)*8) & 3;     
+                }
+                patterTablePartBackground = (((readFromMem(offset + address*(spriteSize*2) + scanline % spriteSize) & (1 << (7 - (i % 8)))) >> (7 - (i % 8)))) 
+                                    + (((readFromMem(offset + address*(spriteSize*2) + scanline % spriteSize + spriteSize) & (1 << (7 - (i % 8)))) >> (7 - (i % 8))) << 1);
+                //int patterTablePart = readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize)
+                //std::cout << " i " << (int)i << " scanline " << scanline << " palnumn " << (int)palleteNumber;
+                //std::cout << "first " << (int)readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize) << " second " << (int)readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize + spriteSize) << " " << (int)patterTablePart << " ";
+                SDL_SetRenderDrawColor(renderer, palleteColors::pallete[imagePallete[patterTablePartBackground][palleteNumber]].r,
+                                                palleteColors::pallete[imagePallete[patterTablePartBackground][palleteNumber]].g,
+                                                palleteColors::pallete[imagePallete[patterTablePartBackground][palleteNumber]].b, 255);
+                
             }
-            else {
-                if((i/8) & 1)
-                    palleteNumber = readFromMem(0x23c0 + i/32 + (scanline/32)*8) & 3;
-                else
-                    palleteNumber = (readFromMem(0x23c0 + i/32 + (scanline/32)*8) >> 2) & 3;
+            if((*registers[1] & 16) && (lineSpritesNum > 0)) {
+                int j = 0;
+                bool draw = true;
+                while((sprites[j].xPos - i <= -8) || (sprites[j].xPos - i > 0)) {
+                    j++;
+                    if(j >= lineSpritesNum) {
+                        draw = false;
+                        break;
+                    }
+                }
+                if(draw) {
+                    int horizonPos;
+                    int vertPos;
+                    if(sprites[j].flipHorizon)
+                        horizonPos = (i - sprites[j].xPos);
+                    else
+                        horizonPos = 7 - (i - sprites[j].xPos);
+                    if(sprites[j].flipVert)
+                        vertPos = (spriteSize - 1) - (scanline - sprites[j].yPos);
+                    else
+                        vertPos = scanline - sprites[j].yPos;
+                    int patterTablePart = (((readFromMem(0x1000*sprites[j].bankNum + sprites[j].index*(spriteSize*2) + vertPos) & (1 << horizonPos)) >> horizonPos))
+                                        + (((readFromMem(0x1000*sprites[j].bankNum + sprites[j].index*(spriteSize*2) + vertPos + spriteSize) & (1 << horizonPos)) >> horizonPos) << 1);
+                    //std::cout << 
+                    if(patterTablePart != 0) {
+                        SDL_SetRenderDrawColor(renderer, palleteColors::pallete[spritePallete[patterTablePart][sprites[j].palleteNum]].r,
+                                                        palleteColors::pallete[spritePallete[patterTablePart][sprites[j].palleteNum]].g,
+                                                        palleteColors::pallete[spritePallete[patterTablePart][sprites[j].palleteNum]].b, 255);
+                        if((j == 0) && (patterTablePartBackground != 0))
+                            *registers[2] |= 0x40;
+                    }
+                }
+
             }
-            int patterTablePart = (((readFromMem(offset + address*(spriteSize*2) + scanline % spriteSize) & (1 << (7 - (i % 8)))) >> (7 - (i % 8)))) 
-                                   + (((readFromMem(offset + address*(spriteSize*2) + scanline % spriteSize + spriteSize) & (1 << (7 - (i % 8)))) >> (7 - (i % 8))) << 1);
-            //int patterTablePart = readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize)
-            //std::cout << " i " << (int)i << " scanline " << scanline << " palnumn " << (int)palleteNumber;
-            //std::cout << "first " << (int)readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize) << " second " << (int)readFromMem(0x1000 + address*(spriteSize*2) + scanline % spriteSize + spriteSize) << " " << (int)patterTablePart << " ";
-            SDL_SetRenderDrawColor(renderer, palleteColors::pallete[imagePallete[patterTablePart][palleteNumber]].r,
-                                             palleteColors::pallete[imagePallete[patterTablePart][palleteNumber]].g,
-                                             palleteColors::pallete[imagePallete[patterTablePart][palleteNumber]].b, 255);
             SDL_RenderDrawPoint(renderer, i, scanline);
         }
         //for(int i=0; i<32; i++)
