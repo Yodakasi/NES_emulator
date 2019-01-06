@@ -7,12 +7,13 @@ void Nes::run(SDL_Renderer *renderer) {
         ppu.writeOamData(address, address+0xff);
     }
     if(cpu.getNMIFlag()) {
-        std::cout << "DUUUPAAA" << std::endl;
         cpu.handleNMIInterupt();
+        //std::cout << "DUUUPAAA" << std::endl;
     }
     ppu.communicateWithCpu(cpu);
-    if(cpu.cycles * 3 - ppu.getCycles() > 341) {
+    if(cpu.cycles - prevCycles > 113) {
         ppu.renderScanline(renderer);
+        prevCycles = cpu.cycles;
     }
 }
 
@@ -33,7 +34,7 @@ void Nes::dump() const {
 }
 
 void Nes::uploadRom() {
-    std::ifstream romFile ("../roms/dk.nes", std::ifstream::binary);
+    std::ifstream romFile ("../roms/donkey_kong.nes", std::ifstream::binary);
     romFile.seekg(0x4);
     uint8_t pkgSize = romFile.peek();
     romFile.seekg(0x5);
@@ -91,5 +92,6 @@ void Nes::uploadRom() {
         }
         romFile.close();
     }
+    cpu.cycles = 7; //WHY?!
     
 }

@@ -2,7 +2,7 @@
 
 void Cpu::fetchOpcode() {
     uint8_t opcode = readFromMem(PC_reg);
-    std::cout << std::hex << "Current opcode: " << (int)opcode << " " << (int)readFromMem(PC_reg+1) << " " << (int)readFromMem(PC_reg+2) << " PC " << (int)PC_reg << " A " << (int)A_reg << " X " << (int)X_reg << " Y " << (int)Y_reg << " P " << (int)P_reg << std::endl;
+    //std::cout << std::hex << "Current opcode: " << (int)opcode << " " << (int)readFromMem(PC_reg+1) << " " << (int)readFromMem(PC_reg+2) << " PC " << (int)PC_reg << " A " << (int)A_reg << " X " << (int)X_reg << " Y " << (int)Y_reg << " P " << (int)P_reg << " SP " << (int)SP_reg << " cycles " << std::dec << (int)memory[0x2005] << std::endl;
     switch(opcode) {
         case 0x00:
             BRK();
@@ -143,7 +143,7 @@ void Cpu::fetchOpcode() {
             LSR(Absolute);
             break;
         case 0x50:
-            branch(Overflow, 1);
+            branch(Overflow, 0);
             break;
         case 0x51:
             EOR(IndirectIndexed);
@@ -467,9 +467,9 @@ void Cpu::fetchOpcode() {
 //System instructions
 
 void Cpu::BRK() {
-    //setFlag(1, Interupt);
-    //push(PC_reg+2);
-    //push(SP_reg);
+    setFlag(1, Interupt);
+    push(PC_reg+2);
+    push(SP_reg);
     PC_reg++;
     cycles += 7;
 }

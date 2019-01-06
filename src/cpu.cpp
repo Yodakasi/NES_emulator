@@ -8,13 +8,14 @@ Cpu::Cpu() {
     X_reg = 0;
     Y_reg = 0;
     SP_reg = 0xfd;
-    P_reg = 0x34;
+    P_reg = 0x24;
     inNMI = false;
+    ReadFromPpuReg = false;
     ZeroMem();
 }
 
 void Cpu::setPCReg() {
-    PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);
+    PC_reg = readFromMem(0xfffd) * 256 + readFromMem(0xfffc);//0xc000;//
 }
 
 void Cpu::ZeroMem() {
@@ -58,10 +59,7 @@ void Cpu::dumpReg() const {
               << " Negative: " << ((P_reg & 128) >> 7) << std::endl;
 }
 
-uint8_t Cpu::readFromMem(uint16_t address) const {
 
-    return memory[address];
-}
 
 void Cpu::writeToMem(uint16_t address, uint8_t value) {
     memory[address] = value;
@@ -83,6 +81,20 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
     }
 }
 
+uint8_t Cpu::readFromMem(uint16_t address) {
+    uint8_t value = memory[address];
+    if(address == 0x2002) {
+        writeToMem(0x2002, (value & 0x7f));
+        writeToMem(0x2005, 0);
+        writeToMem(0x2006, 0);
+    }
+    else if(address == 0x2007)
+        ReadFromPpuReg = true;
+    else if(address == 0x2004)
+        writeToMem(0x2003, memory[0x2003]);
+    return value;
+}
+
 void Cpu::handleNMIInterupt() {
     //fetchOpcode();
     //fetchOpcode();
@@ -92,12 +104,9 @@ void Cpu::handleNMIInterupt() {
     //std::cout << std::hex << "PC on NMI " << (int)PC_reg << std::endl << "cycles " << (int)cycles << std::endl;
     //std::cout << "PC_REG0x2000 " << std::hex << (int)readFromMem(0x2000) << std::endl;
     //std::cout << "PC_REG0x2002 " << std::hex << (int)readFromMem(0x2002) << std::endl;
+    writeToMem(0x2002, (memory[0x2002] & 0x7f));
     push(P_reg);
     PC_reg = readFromMem(0xfffb) * 256 + readFromMem(0xfffa);
-    //std::cout << std::hex << "co " << (int)readFromMem(0x2000) << std::endl;
-    //writeToMem(0x2000, (readFromMem(0x2000) & 0x7f));
-    writeToMem(0x2002, (readFromMem(0x2002) & 0x7f)); // not permament
-    //std::cout << std::hex << "co " << (int)readFromMem(0x2000) << std::endl;
     inNMI = true;
 }
 
@@ -114,16 +123,14 @@ uint8_t *Cpu::dmaBegin() {
 
 
 void Cpu::push(uint8_t value) {
-    SP_reg--;
     writeToMem(SP_reg + 0x100, value);
+    SP_reg--;
     //std::cout << "push " << std::hex << (int)value << std::endl;
 }
 
 uint8_t Cpu::pop() {
-    uint8_t value = readFromMem(SP_reg + 0x100);
-    //writeToMem(0x100 + SP_reg, 0); //remove later
-    //std::cout << "pop " << std::hex << (int)value << std::endl;
     SP_reg++;
+    uint8_t value = readFromMem(SP_reg + 0x100);
     return value;
 }
 
@@ -136,12 +143,12 @@ void Cpu::setFlag(uint8_t value, uint8_t n) {
     }
 }
 
-bool Cpu::getFlag(uint8_t n) const {
-    return ((P_reg & ( 1 << n )) >> n) == 1;
+int Cpu::getFlag(uint8_t n) const {
+    return ((P_reg & ( 1 << n )) >> n);
 }
 
 bool Cpu::getNMIFlag() {
-    return (((memory[0x2000] & 0x80) == 0x80) && ((memory[0x2002] & 0x80) == 0x80) && !inNMI);
+    return (((memory[0x2000] & 0x80) == 0x80) && ((memory[0x2002] & 0x80) == 0x80));
 }
 
 uint8_t Cpu::getIORegister(uint16_t address) {
@@ -170,14 +177,14 @@ uint16_t Cpu::absoluteIndexed(uint8_t arg1, uint8_t arg2, uint8_t offset, bool p
     return address;
 }
 
-uint16_t Cpu::indirect(uint16_t arg) const {
-    return readFromMem(arg) + readFromMem(arg + 1) * 256;
+uint16_t Cpu::indirect(uint8_t arg1, uint8_t arg2) {
+    return readFromMem(arg1 + arg2 * 256) + readFromMem((arg1 + 1) % 256 + arg2 * 256) * 256;
 }
 
-uint16_t Cpu::indexedIndirect(uint8_t arg) const {
+uint16_t Cpu::indexedIndirect(uint8_t arg) {
     return readFromMem((arg + X_reg) % 256) + readFromMem((arg + X_reg + 1) % 256) * 256;
 }
-uint16_t Cpu::indirectIndexed(uint8_t arg) const {
+uint16_t Cpu::indirectIndexed(uint8_t arg) {
     uint16_t ret = readFromMem(arg) + readFromMem((arg + 1) % 256) * 256;
     if((ret & 0xff00)  != ((ret+Y_reg) & 0xff00))
         cycles += 1;

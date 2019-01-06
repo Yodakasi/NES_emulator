@@ -65,7 +65,7 @@ void Cpu::ADC(int addressingMode) {
 
 void Cpu::SBC(int addressingMode) {
     uint8_t value;
-    setFlag(1, Carry);
+    //setFlag(1, Carry);
     switch(addressingMode) {
         case ZeroPage:
             value = readFromMem(zeroPageIndexed(readFromMem(PC_reg+1), 0));

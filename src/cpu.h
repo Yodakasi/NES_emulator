@@ -18,20 +18,20 @@ class Cpu {
     enum registers {A, X, Y, SP};
 
     //memory operations
-    uint8_t readFromMem(uint16_t address) const;
+    uint8_t readFromMem(uint16_t address);
     void writeToMem(uint16_t address, uint8_t value);
     
 
     //flag register operations
     void setFlag(uint8_t value, uint8_t n);
-    bool getFlag(uint8_t n) const;
+    int getFlag(uint8_t n) const;
 
     //addresing
     uint16_t zeroPageIndexed(uint8_t arg, uint8_t offset) const;
     uint16_t absoluteIndexed(uint8_t arg1, uint8_t arg2, uint8_t offset, bool pageCrossing) const;
-    uint16_t indirect(uint16_t arg) const;
-    uint16_t indexedIndirect(uint8_t arg) const;
-    uint16_t indirectIndexed(uint8_t arg) const;
+    uint16_t indirect(uint8_t arg1, uint8_t arg2);
+    uint16_t indexedIndirect(uint8_t arg);
+    uint16_t indirectIndexed(uint8_t arg);
     
     //stack operations
     void push(uint8_t value);
@@ -89,6 +89,7 @@ public:
     Cpu();
     mutable unsigned int cycles;
     bool newVal;
+    bool ReadFromPpuReg;
     bool inNMI;
     uint8_t regAddr;
     void fetchOpcode();

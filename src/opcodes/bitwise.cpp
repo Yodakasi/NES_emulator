@@ -404,6 +404,10 @@ void Cpu::LSR(int addressingMode) {
         setFlag(0, Zero);
     else
         setFlag(1, Zero);
+    if(result > 0x7f)
+        setFlag(1, Negative);
+    else
+        setFlag(0, Negative);
     switch(addressingMode) {
         case ZeroPage:
             writeToMem(zeroPageIndexed(readFromMem(PC_reg+1), 0), result);

@@ -27,7 +27,7 @@ void Cpu::JMP(int addressingMode) {
             cycles += 3;
             break;
         case Indirect:
-            value = indirect(readFromMem(PC_reg+1) + readFromMem(PC_reg+2) * 256);
+            value = indirect(readFromMem(PC_reg+1), readFromMem(PC_reg+2));
             cycles += 5;
             break;
     }
@@ -44,7 +44,7 @@ void Cpu::JSR() {
 void Cpu::RTI() {
     P_reg = pop();
     PC_reg = pop() + pop() * 256;
-    std::cout << "RTI " << (int)PC_reg << std::endl;
+    //std::cout << "RTI " << (int)PC_reg << std::endl;
     cycles += 6;
     inNMI = false;
 }

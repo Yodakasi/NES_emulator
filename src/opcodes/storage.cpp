@@ -42,14 +42,16 @@ void Cpu::store(int addressingMode, uint8_t value, int index) {
 }
 
 void Cpu::transfer(uint8_t from, int to) {
-    if(from > 0x7f)
-        setFlag(1, Negative);
-    else
-        setFlag(0, Negative);
-    if(from == 0)
-        setFlag(1, Zero);
-    else
-        setFlag(0, Zero);
+    if(to != SP) {
+        if(from > 0x7f)
+            setFlag(1, Negative);
+        else
+            setFlag(0, Negative);
+        if(from == 0)
+            setFlag(1, Zero);
+        else
+            setFlag(0, Zero);
+    }
     switch(to) {
         case A:
             A_reg = from;
