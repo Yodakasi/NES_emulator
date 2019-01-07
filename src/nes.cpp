@@ -4,7 +4,7 @@ void Nes::run(SDL_Renderer *renderer) {
     cpu.fetchOpcode();
     if(cpu.getDmaFlag()) {
         uint8_t *address = cpu.dmaBegin(); 
-        ppu.writeOamData(address, address+0xff);
+        ppu.writeOamData(address, address+0x100);
     }
     if(cpu.getNMIFlag()) {
         cpu.handleNMIInterupt();
@@ -34,7 +34,7 @@ void Nes::dump() const {
 }
 
 void Nes::uploadRom() {
-    std::ifstream romFile ("../roms/nestest.nes", std::ifstream::binary);
+    std::ifstream romFile ("../roms/donkey_kong.nes", std::ifstream::binary);
     romFile.seekg(0x4);
     uint8_t pkgSize = romFile.peek();
     romFile.seekg(0x5);

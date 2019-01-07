@@ -31,6 +31,8 @@ void Ppu::dumpMem() const {
     std::cout << std::endl << std::endl;
     std::cout << "OAM Memory" << std::endl;
     for(int i=0; i<0x100; i++) {
+        if(i % 4 == 0)
+            std::cout << std::endl;
         std::cout << (int)OAMMemory[i] << " ";
     }
     std::cout << std::endl;
@@ -159,10 +161,16 @@ void Ppu::fetchSprites() {
         }
         lineSpritesNum++;
         sprites[i].yPos = OAMMemory[j*4];
-        sprites[i].bankNum = OAMMemory[j*4 + 1] & 1;
+        if(*registers[0] & 16) {
+            sprites[i].bankNum = 0;
+            sprites[i].index = OAMMemory[j*4 + 1];
+        }
+        else {
+            sprites[i].bankNum = OAMMemory[j*4 + 1] & 1;
+            sprites[i].index = OAMMemory[j*4 + 1] & 0xfe;
+        }
         if(*registers[0] & 32)
             sprites[i].bankNum = 0;
-        sprites[i].index = OAMMemory[j*4 + 1] & 0xfe;
         sprites[i].palleteNum = OAMMemory[j*4 + 2] & 3;
         if(OAMMemory[j*4 + 2] & 32)
             sprites[i].inFront = true;
@@ -232,18 +240,14 @@ void Ppu::renderScanline(SDL_Renderer *renderer) {
                 
             }
             if((*registers[1] & 16) && (lineSpritesNum > 0)) {
-                int j = 0;
+                int j = -1;
                 bool draw = true;
-                while((sprites[j].xPos - i <= -8) || (sprites[j].xPos - i > 0)) {
+                int patterTablePart;
+                int horizonPos;
+                int vertPos;
+                
+                do {
                     j++;
-                    if(j >= lineSpritesNum) {
-                        draw = false;
-                        break;
-                    }
-                }
-                if(draw) {
-                    int horizonPos;
-                    int vertPos;
                     if(sprites[j].flipHorizon)
                         horizonPos = (i - sprites[j].xPos);
                     else
@@ -252,9 +256,14 @@ void Ppu::renderScanline(SDL_Renderer *renderer) {
                         vertPos = (spriteSize - 1) - (scanline - sprites[j].yPos);
                     else
                         vertPos = scanline - sprites[j].yPos;
-                    int patterTablePart = (((readFromMem(0x1000*sprites[j].bankNum + sprites[j].index*(spriteSize*2) + vertPos) & (1 << horizonPos)) >> horizonPos))
+                    patterTablePart = (((readFromMem(0x1000*sprites[j].bankNum + sprites[j].index*(spriteSize*2) + vertPos) & (1 << horizonPos)) >> horizonPos))
                                         + (((readFromMem(0x1000*sprites[j].bankNum + sprites[j].index*(spriteSize*2) + vertPos + spriteSize) & (1 << horizonPos)) >> horizonPos) << 1);
-                    //std::cout << 
+                    if(j >= lineSpritesNum) {
+                        draw = false;
+                        break;
+                    }
+                } while((sprites[j].xPos - i <= -8) || (sprites[j].xPos - i > 0) || (patterTablePart == 0));
+                if(draw) {
                     if(patterTablePart != 0) {
                         SDL_SetRenderDrawColor(renderer, palleteColors::pallete[spritePallete[patterTablePart][sprites[j].palleteNum]].r,
                                                         palleteColors::pallete[spritePallete[patterTablePart][sprites[j].palleteNum]].g,
@@ -263,13 +272,9 @@ void Ppu::renderScanline(SDL_Renderer *renderer) {
                             *registers[2] |= 0x40;
                     }
                 }
-
             }
             SDL_RenderDrawPoint(renderer, i, scanline);
         }
-        //for(int i=0; i<32; i++)
-        //std::cout << (int)readFromMem(0x1000 + 0x10*(spriteSize*2) + scanline % spriteSize) << " ";
-        //std::cout << std::endl;
         
     }
     else if (scanline == 241) {
