@@ -11,6 +11,8 @@ Cpu::Cpu() {
     P_reg = 0x24;
     inNMI = false;
     ReadFromPpuReg = false;
+    controllerStrobe = false;
+    dontOverwriteA = false;
     ZeroMem();
 }
 
@@ -79,6 +81,10 @@ void Cpu::writeToMem(uint16_t address, uint8_t value) {
     else if(address == 0x4014) {
         dma = true;
     }
+    else if(address == 0x4016 && value == 1)
+        controllerStrobe = true;
+    else if(address == 0x4016 && value == 0)
+        controllerStrobe = false;
 }
 
 uint8_t Cpu::readFromMem(uint16_t address) {
@@ -92,6 +98,8 @@ uint8_t Cpu::readFromMem(uint16_t address) {
         ReadFromPpuReg = true;
     else if(address == 0x2004)
         writeToMem(0x2003, memory[0x2003]);
+    if(address == 0x4016)
+        handleJoypad();
     return value;
 }
 
@@ -189,4 +197,36 @@ uint16_t Cpu::indirectIndexed(uint8_t arg) {
     if((ret & 0xff00)  != ((ret+Y_reg) & 0xff00))
         cycles += 1;
     return ret + Y_reg;
+}
+
+void Cpu::handleJoypad() {
+    const uint8_t *kb = SDL_GetKeyboardState(NULL);
+    dontOverwriteA = true;
+    switch(Y_reg) {
+        case 8:
+            A_reg = kb[SDL_SCANCODE_X]|0x40;
+            break;
+        case 7:
+            A_reg = kb[SDL_SCANCODE_C]|0x40;
+            break;
+        case 6:
+            A_reg = kb[SDL_SCANCODE_D]|0x40;
+            break;
+        case 5:
+            A_reg = kb[SDL_SCANCODE_S]|0x40;
+            break;
+        case 4:
+            A_reg = kb[SDL_SCANCODE_UP]|0x40;
+            break;
+        case 3:
+            A_reg = kb[SDL_SCANCODE_DOWN]|0x40;
+            break;
+        case 2:
+            A_reg = kb[SDL_SCANCODE_LEFT]|0x40;
+            break;
+        case 1:
+            A_reg = kb[SDL_SCANCODE_RIGHT]|0x40;
+            break;
+
+    }
 }

@@ -2,10 +2,13 @@
 #include <cstdint>
 #include <iostream>
 #include <fstream>
+#include <SDL2/SDL.h>
 
 class Cpu {
     bool is_cpu_working;
     bool dma;
+    bool controllerStrobe;
+    bool dontOverwriteA;
     uint16_t PC_reg;
     uint8_t SP_reg;
     uint8_t A_reg;
@@ -37,6 +40,8 @@ class Cpu {
     void push(uint8_t value);
     uint8_t pop();
 
+    //joypad
+    void handleJoypad();
 
     //OPCODES
 
@@ -108,6 +113,4 @@ public:
     uint8_t *getIORegisterPointer(uint16_t address);
     void handleNMIInterupt();
     bool getNMIFlag();
-    
-
 };

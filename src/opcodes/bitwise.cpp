@@ -167,12 +167,12 @@ void Cpu::ASL(int addressingMode) {
             PC_reg += 3;
             break;
         case Accumulator:
-            //A_reg = result;
+            A_reg = result;
             PC_reg += 1;
             cycles += 2;
             break;
     }
-    A_reg = result; // no information
+    //A_reg = result; // no information
     
 }
 
@@ -230,12 +230,12 @@ void Cpu::ROL(int addressingMode) {
             cycles += 7;
             break;
         case Accumulator:
-            //A_reg = result;
+            A_reg = result;
             PC_reg++;
             cycles += 2;
             break;
     }
-    A_reg = result; // no information
+    //A_reg = result; // no information
 
     
 }
@@ -293,12 +293,12 @@ void Cpu::ROR(int addressingMode) {
             PC_reg += 3;
             break;
         case Accumulator:
-            //A_reg = result;
+            A_reg = result;
             PC_reg++;
             cycles += 2;
             break;
     }
-    A_reg = result; // no information
+    //A_reg = result; // no information
 }
 
 void Cpu::EOR(int addressingMode) {
@@ -430,10 +430,10 @@ void Cpu::LSR(int addressingMode) {
             PC_reg += 3;
             break;
         case Accumulator:
-            //A_reg = result;
+            A_reg = result;
             cycles += 2;
             PC_reg++;
             break;
     }
-    A_reg = result; // no information
+    //A_reg = result; // no information
 }

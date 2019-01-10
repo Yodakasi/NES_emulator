@@ -127,7 +127,10 @@ void Cpu::load(int addressingMode, int regNum) {
         setFlag(0, Zero);
     switch(regNum) {
         case A:
-            A_reg = value;
+            if(!dontOverwriteA)
+                A_reg = value;
+            else
+                dontOverwriteA = false;
             break;
         case X:
             X_reg = value;

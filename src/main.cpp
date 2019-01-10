@@ -12,6 +12,7 @@ int main() {
     SDL_Event e;
     SDL_CreateWindowAndRenderer(256, 240, 0, &window, &renderer);
     int i = 0;
+    std::cout << "Key mapping:" << std::endl << "x -> A | c -> B | s -> start | d -> select | arrow keys control movement" << std::endl;
     while(nes.isRunning()) {
         i++;
         nes.run(renderer);
@@ -23,7 +24,7 @@ int main() {
         }
 
     }
-    nes.dump();
+    //nes.dump();
     //for(int i=0; i<=440; i++)
     //    nes.testPpu(renderer);
 
