@@ -1,8 +1,16 @@
-SRC = src/main.cpp src/cpu.cpp src/instructions.cpp src/nes.cpp src/ppu.cpp src/opcodes/*
-DST = bin/nes_emu
+SOURCEDIR = src
+SRCS = $(shell find $(SOURCEDIR) -name '*.cpp')
+OBJS = $(SRCS:.cpp=.o)
 
-rule:
-	g++ -Wall $(SRC) -o $(DST) -lSDL2
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall
+LIBS = -lSDL2
+OBJ_NAME = bin/nes_emulator
+
+all: $(OBJS)
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS) -o $(OBJ_NAME)
+
+.PHONY: clean
 
 clean:
-	rm -f bin/nes_emu
+	rm -f $(OBJS) $(OBJ_NAME) memory_dump.bin

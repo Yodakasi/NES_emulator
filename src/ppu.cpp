@@ -91,12 +91,6 @@ void Ppu::communicateWithCpu(Cpu &cpu) {
                     addressToRead = *registers[6];
                     addressToWriteIterator = 0;
                 }
-                /*
-                else if(addressToWriteIterator == 2) {
-                    addressToWrite = *registers[6] * 0x100;
-                    addressToWriteIterator = 1;
-                    *registers[7] = readFromMem(addressToWrite);
-                }*/
             }
         }
         else if(cpu.regAddr == 7) {
@@ -117,8 +111,7 @@ void Ppu::communicateWithCpu(Cpu &cpu) {
                 addressToWrite += 32;
             else
                 addressToWrite++;
-            //std::cout << "no pisze co chcesz " << std::hex << (int)(addressToWrite % 0x4000) << " " << (int)*registers[7] << std::endl;
-        }
+            }
         else if(cpu.regAddr == 4) {
             OAMMemory[*registers[3]] = *registers[4];
             *registers[3]++;

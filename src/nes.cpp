@@ -8,7 +8,6 @@ void Nes::run(SDL_Renderer *renderer) {
     }
     if(cpu.getNMIFlag()) {
         cpu.handleNMIInterupt();
-        //std::cout << "DUUUPAAA" << std::endl;
     }
     ppu.communicateWithCpu(cpu);
     if(cpu.cycles - prevCycles > 113) {
