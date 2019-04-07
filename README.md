@@ -11,7 +11,7 @@ Binary is in the bin directory. It needs to be run with name of rom. Ex.
 ```
 ./nes_emulator donkey_kong.nes
 ```
-Rom needs to be put in "roms" direcotry
+Rom needs to be put in "roms" directory
 
 ## Description
 
