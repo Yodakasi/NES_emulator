@@ -14,6 +14,13 @@ Binary is in the bin directory. It needs to be run with name of rom. Ex.
 Rom needs to be put in "roms" direcotry
 
 ## Description
+
+### Key mapping
+```
+x -> A | c -> B | s -> start | d -> select | arrow keys control movement
+```
+
+### Games
 What works 100%:
 ```
 Donkey Kong
