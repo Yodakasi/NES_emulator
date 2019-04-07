@@ -32,8 +32,8 @@ void Nes::dump() const {
     ppu.dumpMem();
 }
 
-void Nes::uploadRom() {
-    std::ifstream romFile ("../roms/donkey_kong.nes", std::ifstream::binary);
+void Nes::uploadRom(std::string rom) {
+    std::ifstream romFile ("../roms/" + rom, std::ifstream::binary);
     romFile.seekg(0x4);
     uint8_t pkgSize = romFile.peek();
     romFile.seekg(0x5);

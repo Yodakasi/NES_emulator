@@ -5,18 +5,19 @@
 #include "nes.h"
 
 
-int main() {
-    Nes nes;
+int main(int argc, char *argv[]) {
+    if(argc < 2) {
+        std::cout << "Usage: " << argv[0] << " <rom name in roms directory>" << std::endl;
+        exit(0);
+    }
+    Nes nes(argv[1]);
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Event e;
     SDL_CreateWindowAndRenderer(256, 240, 0, &window, &renderer);
-    int i = 0;
     std::cout << "Key mapping:" << std::endl << "x -> A | c -> B | s -> start | d -> select | arrow keys control movement" << std::endl;
     while(nes.isRunning()) {
-        i++;
         nes.run(renderer);
-        //if(i>500000) break;
         SDL_PollEvent(&e);
         if (e.type == SDL_QUIT) {
             SDL_Log("Program quit after %i ticks", e.quit.timestamp);
@@ -24,20 +25,7 @@ int main() {
         }
 
     }
-    //nes.dump();
-    //for(int i=0; i<=440; i++)
-    //    nes.testPpu(renderer);
 
-
-    
-    //sleep(5);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    /*
-    cpu.dumpReg();
-    cpu.dumpStack();
-    //cpu.fetchOpcode();
-    cpu.dumpMem();
-    //cpu.dumpReg();
-    */
 }
